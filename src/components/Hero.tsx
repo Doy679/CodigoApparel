@@ -2,7 +2,7 @@
 
 import { ArrowRight } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
+import { motion } from "framer-motion";
 
 export default function Hero() {
   return (
@@ -23,16 +23,39 @@ export default function Hero() {
 
       <div className="container mx-auto px-4 md:px-8 relative z-10 text-center pt-16">
         <div className="space-y-6">
-          <p className="text-xs md:text-sm font-bold tracking-[0.3em] uppercase opacity-80 animate-fade-in">
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 0.8, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-xs md:text-sm font-bold tracking-[0.3em] uppercase opacity-80"
+          >
             New Collection Drop
-          </p>
-          <h1 className="text-5xl md:text-7xl lg:text-9xl font-black tracking-tighter uppercase italic leading-none animate-slide-up">
+          </motion.p>
+          
+          <motion.h1 
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            className="text-5xl md:text-7xl lg:text-9xl font-black tracking-tighter uppercase italic leading-none"
+          >
             Street <br /> & Culture
-          </h1>
-          <p className="text-sm md:text-lg text-neutral-300 max-w-xl mx-auto font-medium tracking-wide">
+          </motion.h1>
+
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="text-sm md:text-lg text-neutral-300 max-w-xl mx-auto font-medium tracking-wide"
+          >
             Authentic apparel for the culture.
-          </p>
-          <div className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up">
+          </motion.p>
+
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.8 }}
+            className="pt-8 flex flex-col sm:flex-row items-center justify-center gap-4"
+          >
             <Link 
               href="/store" 
               className="px-10 py-4 bg-white text-black text-xs font-black uppercase tracking-widest hover:bg-neutral-200 transition-colors flex items-center gap-2 group"
@@ -46,15 +69,20 @@ export default function Hero() {
             >
               OUR STORY
             </Link>
-          </div>
+          </motion.div>
         </div>
       </div>
 
       {/* Scroll indicator */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-40">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.4 }}
+        transition={{ delay: 1.2, duration: 1 }}
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
+      >
         <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Scroll</span>
         <div className="w-px h-12 bg-white/40"></div>
-      </div>
+      </motion.div>
     </section>
   );
 }

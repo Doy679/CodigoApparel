@@ -1,18 +1,28 @@
+"use client";
+
 import { products } from "@/data/products";
-import { notFound } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ShoppingBag, ShieldCheck, Truck, RefreshCw } from "lucide-react";
 import ProductGrid from "@/components/ProductGrid";
 import BackButton from "@/components/BackButton";
+import { useState, use } from "react";
+import { useCart } from "@/context/CartContext";
 
-export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const product = products.find((p) => p.id === id);
+  const [selectedSize, setSelectedSize] = useState<string | undefined>(undefined);
+  const [activeImage, setActiveImage] = useState<string | null>(null);
+  const { addToCart } = useCart();
 
   if (!product) {
     notFound();
   }
+
+  const allImages = [product.image, ...(product.additionalImages || [])];
+  const currentImage = activeImage || product.image;
 
   return (
     <div className="min-h-screen bg-white pt-24">
@@ -21,16 +31,32 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           {/* Product Images - Sticky on Desktop */}
-          <div className="space-y-4 lg:sticky lg:top-32 h-fit">
+          <div className="space-y-6 lg:sticky lg:top-32 h-fit">
             <div className="relative aspect-[3/4] bg-neutral-100 overflow-hidden">
               <Image 
-                src={product.image} 
+                src={currentImage} 
                 alt={product.name} 
                 fill 
-                className="object-cover"
+                className="object-cover transition-opacity duration-500"
                 priority
               />
             </div>
+            
+            {allImages.length > 1 && (
+              <div className="grid grid-cols-5 gap-4">
+                {allImages.map((img, idx) => (
+                  <button 
+                    key={idx}
+                    onClick={() => setActiveImage(img)}
+                    className={`relative aspect-[3/4] bg-neutral-100 overflow-hidden border-2 transition-all cursor-pointer ${
+                      currentImage === img ? "border-black" : "border-transparent opacity-60 hover:opacity-100"
+                    }`}
+                  >
+                    <Image src={img} alt={`${product.name} detail ${idx}`} fill className="object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Product Info */}
@@ -59,16 +85,25 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             <div className="space-y-4 pt-4">
               <div className="flex flex-col gap-2">
                 <span className="text-[10px] font-black uppercase tracking-widest">Select Size</span>
-                <div className="flex gap-2">
-                  {['S', 'M', 'L', 'XL'].map((size) => (
-                    <button key={size} className="w-12 h-12 border-2 border-neutral-100 flex items-center justify-center text-xs font-black hover:border-black transition-all">
+                <div className="flex flex-wrap gap-2">
+                  {['S', 'M', 'L', 'XL', '2XL', '3XL'].map((size) => (
+                    <button 
+                      key={size} 
+                      onClick={() => setSelectedSize(size)}
+                      className={`w-12 h-12 border-2 flex items-center justify-center text-xs font-black transition-all cursor-pointer ${
+                        selectedSize === size ? "border-black bg-black text-white" : "border-neutral-100 hover:border-black"
+                      }`}
+                    >
                       {size}
                     </button>
                   ))}
                 </div>
               </div>
 
-              <button className="w-full bg-black text-white py-5 text-xs font-black uppercase tracking-[0.2em] hover:bg-neutral-800 transition-all flex items-center justify-center gap-3">
+              <button 
+                onClick={() => addToCart(product, selectedSize)}
+                className="w-full bg-black text-white py-5 text-xs font-black uppercase tracking-[0.2em] hover:bg-neutral-800 transition-all flex items-center justify-center gap-3"
+              >
                 <ShoppingBag size={18} />
                 Add to Cart
               </button>

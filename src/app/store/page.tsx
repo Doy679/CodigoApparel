@@ -3,7 +3,8 @@
 import { products } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
 import { useState, useMemo } from "react";
-import { Filter, X } from "lucide-react";
+import { Filter, X, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
 export default function StorePage() {
   const [activeCategory, setActiveCategory] = useState("All");
@@ -19,6 +20,14 @@ export default function StorePage() {
   return (
     <div className="min-h-screen bg-white pt-32 pb-24">
       <div className="container mx-auto px-4 md:px-8">
+        <Link 
+          href="/" 
+          className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest hover:text-neutral-500 transition-colors mb-12"
+        >
+          <ArrowLeft size={14} />
+          Back to selection
+        </Link>
+
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
           <div className="space-y-4">
             <h1 className="text-4xl md:text-7xl font-black uppercase tracking-tighter italic leading-none">The Store</h1>
