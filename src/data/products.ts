@@ -65,6 +65,11 @@ export const products: Product[] = [
     hoverImage: "/images/products/C-AW-01.jpg",
     isNew: true,
     description: "A little toxic. Signature acid-washed finish with meticulously stitched details.",
-    details: ["Limited Edition Acid Wash", "Hand-finished texture", "Premium stitched detailing"]
+    details: ["Limited Edition Acid Wash", "Hand-finished texture", "Premium stitched detailing"],
+    additionalImages: [
+      "/images/products/C-AW-01-detail-1.jpg",
+      "/images/products/C-AW-01-detail-2.jpg",
+      "/images/products/C-AW-01-detail-3.jpg"
+    ]
   }
 ];
