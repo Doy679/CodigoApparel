@@ -9,6 +9,7 @@ export interface Product {
   description: string;
   details: string[];
   additionalImages?: string[];
+  stock: number;
 }
 
 export const products: Product[] = [
@@ -26,7 +27,8 @@ export const products: Product[] = [
       "/images/products/C-CB-01-detail-1.jpg",
       "/images/products/C-CB-01-detail-2.jpg",
       "/images/products/C-CB-01-detail-3.jpg"
-    ]
+    ],
+    stock: 24
   },
   {
     id: "2",
@@ -37,7 +39,8 @@ export const products: Product[] = [
     hoverImage: "/images/products/C-CBR-03.jpg",
     isNew: true,
     description: "Rooted in the hustle, grounded by the street. A deep earth tone for the steady and the solid.",
-    details: ["Premium Corduroy Fabric", "Reinforced tonal stitching", "Signature oversized fit"]
+    details: ["Premium Corduroy Fabric", "Reinforced tonal stitching", "Signature oversized fit"],
+    stock: 12
   },
   {
     id: "3",
@@ -54,7 +57,8 @@ export const products: Product[] = [
       "/images/products/C-CW-02-detail-2.jpg",
       "/images/products/C-CW-02-detail-3.jpg",
       "/images/products/C-CW-02-detail-4.jpg"
-    ]
+    ],
+    stock: 8
   },
   {
     id: "4",
@@ -70,6 +74,7 @@ export const products: Product[] = [
       "/images/products/C-AW-01-detail-1.jpg",
       "/images/products/C-AW-01-detail-2.jpg",
       "/images/products/C-AW-01-detail-3.jpg"
-    ]
+    ],
+    stock: 15
   }
 ];
