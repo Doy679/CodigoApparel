@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Truck, Package, Check } from "lucide-react";
+import { Truck } from "lucide-react";
 
 export default function DeliveryAnimation() {
   return (
@@ -9,7 +9,7 @@ export default function DeliveryAnimation() {
       <div className="relative w-full max-w-lg h-64 flex flex-col items-center justify-center">
         {/* Road line */}
         <div className="absolute bottom-16 left-0 right-0 h-1 bg-neutral-100 overflow-hidden">
-          <motion.div 
+          <motion.div
             initial={{ x: "-100%" }}
             animate={{ x: "100%" }}
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -24,15 +24,15 @@ export default function DeliveryAnimation() {
           className="relative z-10 flex flex-col items-center"
         >
           <motion.div
-            animate={{ 
-              y: [0, -4, 0],
+            animate={{
+              y: [0, -4, 0]
             }}
             transition={{ duration: 0.4, repeat: Infinity, ease: "easeInOut" }}
             className="text-black"
           >
             <Truck size={80} strokeWidth={1.5} />
           </motion.div>
-          
+
           {/* Exhaust/Speed particles */}
           <div className="flex gap-1 mt-2">
             {[1, 2, 3].map((i) => (
@@ -49,7 +49,7 @@ export default function DeliveryAnimation() {
 
         {/* Text reveals */}
         <div className="mt-12 text-center space-y-2">
-          <motion.h3 
+          <motion.h3
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}

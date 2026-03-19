@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import Hero from "@/components/Hero";
 import CollectionShowcase from "@/components/CollectionShowcase";
 import ProductGrid from "@/components/ProductGrid";
@@ -6,17 +10,43 @@ import TextMarquee from "@/components/TextMarquee";
 import SocialProof from "@/components/SocialProof";
 
 export default function Home() {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    if (!mounted) {
+      setTimeout(() => setMounted(true), 0);
+    }
+  }, [mounted]);
+
+  if (!mounted) {
+    return <div className="min-h-screen bg-black" />; // Blank black screen during hydration
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <Hero />
-      
-      <CollectionShowcase />
-      
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, margin: "-100px" }}
+        className="glitch-reveal"
+      >
+        <CollectionShowcase />
+      </motion.div>
+
       <ProductGrid title="New Drops" />
 
       <TextMarquee />
 
-      <CultureSection />
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, margin: "-100px" }}
+        className="glitch-reveal"
+      >
+        <CultureSection />
+      </motion.div>
 
       <ProductGrid title="Best Sellers" />
 
