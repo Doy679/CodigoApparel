@@ -8,6 +8,7 @@ import ProductGrid from "@/components/ProductGrid";
 import CultureSection from "@/components/CultureSection";
 import TextMarquee from "@/components/TextMarquee";
 import SocialProof from "@/components/SocialProof";
+import SocialConnect from "@/components/SocialConnect";
 
 export default function Home() {
   const [mounted, setMounted] = useState(false);
@@ -49,6 +50,8 @@ export default function Home() {
       </motion.div>
 
       <ProductGrid title="Best Sellers" />
+
+      <SocialConnect />
 
       <SocialProof />
     </div>

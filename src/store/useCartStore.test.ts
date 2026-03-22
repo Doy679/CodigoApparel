@@ -24,7 +24,8 @@ describe("useCartStore", () => {
           image: "/img.jpg",
           description: "",
           details: [],
-          isNew: false
+          isNew: false,
+          stock: 10
         }
       ]
     });

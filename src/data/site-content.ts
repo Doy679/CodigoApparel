@@ -21,7 +21,8 @@ export const COMMUNITY_IMAGES = [
   "/images/community/new-comm-13.jpg",
   "/images/community/new-comm-14.jpg",
   "/images/community/new-comm-15.jpg",
-  "/images/community/new-comm-16.png"
+  "/images/community/new-comm-16.png",
+  "/images/community/new-comm-17.jpg"
 ];
 
 export const MARQUEE_PHRASE = "STREET & CULTURE";
