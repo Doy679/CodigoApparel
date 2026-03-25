@@ -8,23 +8,29 @@ export interface Product {
   isNew?: boolean;
   description: string;
   details: string[];
+  additionalImages?: string[];
 }
 
 export const products: Product[] = [
   {
     id: "1",
-    name: "C•Corduroy Black-01",
+    name: "C • Corduroy Black 01",
     price: 799.00,
     category: "Tops",
     image: "/images/products/C-CB-01.jpg",
     hoverImage: "/images/products/C-CB-01.jpg",
     isNew: true,
     description: "Premium corduroy texture meets the signature black-on-black code, meticulously stitched.",
-    details: ["Premium Corduroy Fabric", "High-density Stealth Black stitching", "Signature oversized fit"]
+    details: ["Premium Corduroy Fabric", "High-density Stealth Black stitching", "Signature oversized fit"],
+    additionalImages: [
+      "/images/products/C-CB-01-detail-1.jpg",
+      "/images/products/C-CB-01-detail-2.jpg",
+      "/images/products/C-CB-01-detail-3.jpg"
+    ]
   },
   {
     id: "2",
-    name: "C•Corduroy Brown -03",
+    name: "C • Corduroy Brown 03",
     price: 799.00,
     category: "Tops",
     image: "/images/products/C-CBR-03.jpg",
@@ -35,18 +41,24 @@ export const products: Product[] = [
   },
   {
     id: "3",
-    name: "C•Corduroy White -02",
+    name: "C • Corduroy White 02",
     price: 799.00,
     category: "Tops",
     image: "/images/products/C-CW-02.jpg",
     hoverImage: "/images/products/C-CW-02.jpg",
     isNew: true,
     description: "Pristine white corduroy featuring the high-density white-on-white stitched code.",
-    details: ["Premium Corduroy Fabric", "High-density white-on-white stitching", "Signature oversized fit"]
+    details: ["Premium Corduroy Fabric", "High-density white-on-white stitching", "Signature oversized fit"],
+    additionalImages: [
+      "/images/products/C-CW-02-detail-1.jpg",
+      "/images/products/C-CW-02-detail-2.jpg",
+      "/images/products/C-CW-02-detail-3.jpg",
+      "/images/products/C-CW-02-detail-4.jpg"
+    ]
   },
   {
     id: "4",
-    name: "C•ACID WASH-01",
+    name: "C • BLACK ACID WASH 01",
     price: 799.00,
     category: "Tops",
     image: "/images/products/C-AW-01.jpg",

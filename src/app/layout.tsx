@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { CartProvider } from "@/context/CartContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Codigo Street and Culture",
-  description: "Official web store for Codigo Street and Culture. Redefining modern apparel.",
+  title: "Codigo Street & Culture",
+  description: "Authentic apparel for the culture.",
 };
 
 export default function RootLayout({
@@ -25,16 +26,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col font-sans">
-        <Header />
-        <main className="flex-grow">
-          {children}
-        </main>
-        <Footer />
+    <html lang="en" className="h-full">
+      <body className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
+        <CartProvider>
+          <Header />
+          <main>{children}</main>
+          <Footer />
+        </CartProvider>
       </body>
     </html>
   );

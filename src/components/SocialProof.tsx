@@ -1,40 +1,94 @@
 "use client";
 
-import { Camera, MessageSquare } from "lucide-react";
+import { Camera, MessageSquare, X } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function SocialProof() {
-  const posts = [1, 2, 3, 4, 5, 6];
+  const [selectedImg, setSelectedImg] = useState<string | null>(null);
+
+  const communityImages = [
+    "/images/community/comm-1.jpg",
+    "/images/community/comm-2.jpg",
+    "/images/community/comm-3.jpg",
+    "/images/community/comm-4.jpg",
+    "/images/community/comm-5.jpg",
+    "/images/community/comm-6.jpg",
+    "/images/community/comm-7.jpg",
+  ];
 
   return (
     <section className="py-24 bg-white">
       <div className="container mx-auto px-4 md:px-8">
         <div className="flex flex-col md:flex-row justify-between items-center mb-16 gap-8">
           <div className="space-y-4 text-center md:text-left">
-            <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter italic leading-none">COMMUNITY CODE</h2>
+            <h2 className="text-4xl md:text-6xl font-black uppercase italic leading-none">COMMUNITY CODE</h2>
             <div className="w-16 h-1 bg-black mx-auto md:mx-0"></div>
           </div>
           <div className="flex items-center gap-4 text-xs font-black uppercase tracking-widest text-neutral-400">
             <Camera size={18} />
-            #CODIGOSTEET
+            #CODIGOSTREET
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-          {posts.map((post) => (
-            <div key={post} className="relative aspect-square bg-neutral-100 group overflow-hidden cursor-pointer shadow-sm border border-neutral-100">
-              <div className="absolute inset-0 z-0 bg-neutral-200">
-                {/* Placeholder for social media image */}
-                <div className="w-full h-full flex items-center justify-center text-neutral-400 font-black uppercase text-xl italic opacity-50">
-                  #{post}
-                </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+          {communityImages.map((src, index) => (
+            <motion.div 
+              key={index} 
+              layoutId={src}
+              onClick={() => setSelectedImg(src)}
+              className="relative aspect-[3/4] bg-neutral-100 group overflow-hidden cursor-pointer shadow-sm border border-neutral-50"
+            >
+              <div className="absolute inset-0 z-0">
+                <Image 
+                  src={src} 
+                  alt={`Community member ${index + 1}`} 
+                  fill 
+                  className="object-cover transition-transform duration-700 group-hover:scale-110"
+                />
               </div>
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-2 z-10">
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-2 z-10">
                 <Camera size={20} />
-                <span className="text-[10px] font-black uppercase tracking-widest">View Post</span>
+                <span className="text-[8px] font-black uppercase tracking-widest">View Post</span>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
+
+        {/* Lightbox / Zoom Modal */}
+        <AnimatePresence>
+          {selectedImg && (
+            <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 md:p-12">
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setSelectedImg(null)}
+                className="absolute inset-0 bg-black/95 backdrop-blur-sm cursor-zoom-out"
+              />
+              
+              <motion.div 
+                layoutId={selectedImg}
+                className="relative w-full max-w-4xl aspect-[3/4] md:aspect-auto md:h-[80vh] z-10 overflow-hidden"
+              >
+                <Image 
+                  src={selectedImg} 
+                  alt="Community Zoom" 
+                  fill 
+                  className="object-contain"
+                  priority
+                />
+                <button 
+                  onClick={() => setSelectedImg(null)}
+                  className="absolute top-4 right-4 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all backdrop-blur-md"
+                >
+                  <X size={24} />
+                </button>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
 
         <div className="mt-16 text-center">
           <p className="text-sm font-medium text-neutral-600 tracking-tight mb-8">Join the collective. Tag your fit to be featured.</p>
