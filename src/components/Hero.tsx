@@ -64,7 +64,6 @@ export default function Hero() {
           >
             <Link
               href="/store"
-              data-cursor="SHOP"
               className="px-10 py-4 bg-white text-black text-xs font-black uppercase tracking-widest hover:bg-neutral-200 transition-colors flex items-center gap-2 group"
             >
               SHOP THE DROP
@@ -72,7 +71,6 @@ export default function Hero() {
             </Link>
             <Link
               href="/about"
-              data-cursor="STORY"
               className="px-10 py-4 border border-white/20 text-white text-xs font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all"
             >
               OUR STORY

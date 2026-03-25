@@ -45,7 +45,6 @@ export default function CultureSection() {
             <div className="pt-8">
               <Link
                 href="/about"
-                data-cursor="STORY"
                 className="inline-flex items-center gap-3 group text-xs font-black uppercase tracking-[0.3em] border-b-2 border-white pb-2 hover:text-neutral-400 hover:border-neutral-400 transition-all"
               >
                 OUR STORY

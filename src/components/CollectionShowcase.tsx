@@ -49,10 +49,7 @@ export default function CollectionShowcase() {
                 index === 1 ? "md:mt-12" : index === 2 ? "md:mt-24" : ""
               }`}
             >
-              <div
-                className="group relative aspect-[3/4] overflow-hidden bg-neutral-900 border border-white/5 shadow-2xl cursor-pointer"
-                data-cursor="EXPAND"
-              >
+              <div className="group relative aspect-[3/4] overflow-hidden bg-neutral-900 border border-white/5 shadow-2xl cursor-pointer">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={item.images.length > 1 ? item.images[flipIndex] : item.images[0]}
@@ -91,7 +88,6 @@ export default function CollectionShowcase() {
         <div className="mt-32 flex justify-center">
           <Link
             href="/store"
-            data-cursor="VAULT"
             className="px-12 py-5 bg-white text-black text-xs font-black uppercase tracking-[0.3em] hover:bg-neutral-200 transition-all flex items-center gap-3"
           >
             EXPLORE THE VAULT

@@ -2,26 +2,35 @@
 
 import { Camera, X, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { COMMUNITY_IMAGES } from "@/data/site-content";
+import { useAdminStore } from "@/store/useAdminStore";
 
 export default function SocialProof() {
+  const [mounted, setMounted] = useState(false);
+  const { communityImages } = useAdminStore();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleNext = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     if (selectedIndex !== null) {
-      setSelectedIndex((selectedIndex + 1) % COMMUNITY_IMAGES.length);
+      setSelectedIndex((selectedIndex + 1) % communityImages.length);
     }
   };
 
   const handlePrev = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     if (selectedIndex !== null) {
-      setSelectedIndex((selectedIndex - 1 + COMMUNITY_IMAGES.length) % COMMUNITY_IMAGES.length);
+      setSelectedIndex((selectedIndex - 1 + communityImages.length) % communityImages.length);
     }
   };
+
+  if (!mounted) return null;
 
   return (
     <section className="py-24 bg-white overflow-hidden">
@@ -52,10 +61,10 @@ export default function SocialProof() {
           className="flex gap-6 pr-6 items-center"
         >
           {/* Double for seamless loop */}
-          {[...COMMUNITY_IMAGES, ...COMMUNITY_IMAGES].map((src, index) => (
+          {[...communityImages, ...communityImages].map((src, index) => (
             <div
               key={index}
-              onClick={() => setSelectedIndex(index % COMMUNITY_IMAGES.length)}
+              onClick={() => setSelectedIndex(index % communityImages.length)}
               data-cursor="VIEW FIT"
               className="relative w-[180px] md:w-[240px] aspect-[3/4] bg-neutral-100 group overflow-hidden cursor-pointer flex-shrink-0"
             >
@@ -95,7 +104,7 @@ export default function SocialProof() {
               </button>
 
               <motion.div
-                key={COMMUNITY_IMAGES[selectedIndex]}
+                key={communityImages[selectedIndex]}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
@@ -103,7 +112,7 @@ export default function SocialProof() {
                 className="relative w-full h-[75vh] md:h-[90vh] overflow-hidden"
               >
                 <Image
-                  src={COMMUNITY_IMAGES[selectedIndex]}
+                  src={communityImages[selectedIndex]}
                   alt="Community Zoom"
                   fill
                   className="object-contain"

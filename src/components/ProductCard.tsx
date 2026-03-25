@@ -49,7 +49,6 @@ export default function ProductCard({ product }: { product: Product }) {
       >
         <Link
           href={`/product/${product.id}`}
-          data-cursor="DECODE"
           className="relative aspect-[3/4] overflow-hidden bg-neutral-100 transition-all duration-500 ease-in-out block"
         >
           {/* Main Image */}
@@ -112,7 +111,7 @@ export default function ProductCard({ product }: { product: Product }) {
             <h3 className="text-sm font-black uppercase tracking-tighter hover:opacity-60 transition-opacity italic">
               <Link href={`/product/${product.id}`}>{product.name}</Link>
             </h3>
-            <p className="text-sm font-bold tracking-tight">
+            <p className="text-sm font-bold tracking-tight text-neutral-900">
               ₱{product.price.toLocaleString("en-PH", { minimumFractionDigits: 2 })}
             </p>
           </div>

@@ -1,9 +1,19 @@
-import { products as productsData } from "@/data/products";
+import { useAdminStore } from "@/store/useAdminStore";
+import { useEffect, useState } from "react";
 
 export function useProducts() {
-  // Return data directly and synchronously to prevent hydration hangs
+  const [mounted, setMounted] = useState(false);
+  const { products } = useAdminStore();
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMounted(true), 0);
+    return () => clearTimeout(timer);
+  }, []);
+
   return {
-    products: productsData,
-    loading: false
+    // Return admin store products if mounted (to avoid hydration mismatch),
+    // otherwise return empty or static data for the initial SSR pass
+    products: mounted ? products : [],
+    loading: !mounted
   };
 }
