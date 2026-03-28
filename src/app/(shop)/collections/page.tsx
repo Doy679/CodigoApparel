@@ -51,7 +51,7 @@ export default function CollectionsPage() {
               key={collection.id}
               initial={{ opacity: 0, y: 50 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
+              viewport={{ once: true, margin: "-10px" }}
               transition={{ duration: 0.8 }}
               className={`flex flex-col ${index % 2 === 1 ? "md:flex-row-reverse" : "md:flex-row"} gap-12 items-center`}
             >

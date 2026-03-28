@@ -30,7 +30,7 @@ export default function Home() {
       <motion.div
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
-        viewport={{ once: true, margin: "-100px" }}
+        viewport={{ once: true, margin: "-10px" }}
         className="glitch-reveal"
       >
         <CollectionShowcase />
@@ -43,7 +43,7 @@ export default function Home() {
       <motion.div
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
-        viewport={{ once: true, margin: "-100px" }}
+        viewport={{ once: true, margin: "-10px" }}
         className="glitch-reveal"
       >
         <CultureSection />

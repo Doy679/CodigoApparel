@@ -6,10 +6,17 @@ import { motion } from "framer-motion";
 
 export default function Hero() {
   return (
-    <section className="relative h-screen flex items-center justify-center overflow-hidden bg-black text-white">
+    <section className="relative h-[100dvh] min-h-[600px] flex items-center justify-center overflow-hidden bg-black text-white">
       {/* Background Video */}
       <div className="absolute inset-0 z-0">
-        <video autoPlay loop muted playsInline className="w-full h-full object-cover opacity-60">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          poster="/landing-page-bg.jpeg"
+          className="w-full h-full object-cover opacity-60"
+        >
           <source src="/landing-video.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
