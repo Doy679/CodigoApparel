@@ -18,6 +18,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useAdminStore } from "@/store/useAdminStore";
 import { toast } from "sonner";
 import Link from "next/link";
+import { supabase } from "@/lib/supabase";
 
 export default function AdminProducts() {
   const [mounted, setMounted] = useState(false);
@@ -40,21 +41,41 @@ export default function AdminProducts() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleImageUpload = (file: File) => {
+  const handleImageUpload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
       toast.error("Please upload an image file.");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      if (selectedProduct) {
-        setSelectedProduct({ ...selectedProduct, image: result });
-        toast.success("Image preview updated.");
+    const toastId = toast.loading("Uploading image...");
+
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+
+      const { error } = await supabase.storage.from("products").upload(fileName, file, {
+        cacheControl: "3600",
+        upsert: false
+      });
+
+      if (error) {
+        throw error;
       }
-    };
-    reader.readAsDataURL(file);
+
+      const {
+        data: { publicUrl }
+      } = supabase.storage.from("products").getPublicUrl(fileName);
+
+      if (selectedProduct) {
+        setSelectedProduct({ ...selectedProduct, image: publicUrl });
+        toast.dismiss(toastId);
+        toast.success("Image uploaded successfully!");
+      }
+    } catch (error: unknown) {
+      toast.dismiss(toastId);
+      const message = error instanceof Error ? error.message : String(error);
+      toast.error(`Upload failed: ${message}`);
+    }
   };
 
   const onDrop = (e: React.DragEvent) => {

@@ -1,5 +1,24 @@
-import NextAuth from "next-auth";
+import NextAuth, { type DefaultSession } from "next-auth";
+import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
+
+declare module "next-auth" {
+  interface Session {
+    user: {
+      role?: string;
+    } & DefaultSession["user"];
+  }
+
+  interface User {
+    role?: string;
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    role?: string;
+  }
+}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -13,10 +32,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const adminUsername = process.env.ADMIN_USERNAME;
         const adminPassword = process.env.ADMIN_PASSWORD;
 
-        if (
-          credentials?.username === adminUsername &&
-          credentials?.password === adminPassword
-        ) {
+        if (credentials?.username === adminUsername && credentials?.password === adminPassword) {
           return { id: "1", name: "Admin", role: "admin" };
         }
 
@@ -33,12 +49,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     },
     session({ session, token }) {
       if (session.user) {
-        (session.user as any).role = token.role;
+        session.user.role = token.role as string | undefined;
       }
       return session;
     }
   },
   pages: {
-    signIn: "/login",
-  },
+    signIn: "/login"
+  }
 });
