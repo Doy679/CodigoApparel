@@ -4,11 +4,12 @@ import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminHeader from "@/components/admin/AdminHeader";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  // Check if the user is authenticated and is an admin
+  // Use a more robust check for the session
   const session = await auth();
 
-  if (!session || session.user?.role !== "admin") {
-    // If not authenticated or not an admin, redirect them to the login page
+  // If the session doesn't exist or isn't an admin, kick back to login
+  if (!session?.user || session.user.role !== "admin") {
+    // Adding a redirect to ensure we don't show a blank screen
     redirect("/login");
   }
 

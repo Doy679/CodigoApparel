@@ -57,6 +57,9 @@ interface AdminState {
   deleteChat: (chatId: string) => void;
   createChat: (customerName: string) => void;
 
+  // Clear State
+  reset: () => void;
+
   // Stats calculations
   getStats: () => {
     totalRevenue: string;
@@ -205,6 +208,39 @@ export const useAdminStore = create<AdminState>()(
               ...state.chats
             ]
           };
+        }),
+
+      reset: () =>
+        set({
+          products: initialProducts,
+          orders: [
+            {
+              id: "#CDG-8921",
+              customer: "Miguel R.",
+              items: 2,
+              total: 1598,
+              status: "Processing",
+              time: "2 mins ago"
+            },
+            {
+              id: "#CDG-8920",
+              customer: "Sofia L.",
+              items: 1,
+              total: 799,
+              status: "Shipped",
+              time: "45 mins ago"
+            },
+            {
+              id: "#CDG-8919",
+              customer: "Andre C.",
+              items: 3,
+              total: 2397,
+              status: "Delivered",
+              time: "2 hours ago"
+            }
+          ],
+          communityImages: initialCommunityImages,
+          chats: []
         }),
 
       getStats: () => {

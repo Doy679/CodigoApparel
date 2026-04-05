@@ -17,15 +17,22 @@ import { useAdminStore } from "@/store/useAdminStore";
 import { useEffect, useState } from "react";
 
 export default function AdminDashboard() {
-  const [mounted, setMounted] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   const { products, orders, getStats } = useAdminStore();
 
   useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
+    setIsClient(true);
   }, []);
 
-  if (!mounted) return null;
+  if (!isClient) {
+    return (
+      <div className="min-h-[50vh] flex items-center justify-center">
+        <div className="text-[10px] font-black uppercase tracking-[0.5em] animate-pulse">
+          Initializing Dashboard...
+        </div>
+      </div>
+    );
+  }
 
   const stats = getStats();
   const lowStockProducts = products.filter((p) => p.stock <= 5);

@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { signOut } from "next-auth/react";
+import { useAdminStore } from "@/store/useAdminStore";
 
 const navItems = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -26,6 +27,7 @@ const navItems = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const resetStore = useAdminStore((state) => state.reset);
 
   return (
     <aside className="w-64 bg-black text-white h-screen fixed left-0 top-0 z-50 flex flex-col border-r border-neutral-800">
@@ -73,7 +75,10 @@ export default function AdminSidebar() {
 
       <div className="p-8 mt-auto border-t border-neutral-900">
         <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={() => {
+            resetStore();
+            signOut({ callbackUrl: "/login" });
+          }}
           className="flex items-center gap-4 text-neutral-500 hover:text-white transition-colors w-full group"
         >
           <LogOut size={18} />
