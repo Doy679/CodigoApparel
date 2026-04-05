@@ -21,11 +21,11 @@ declare module "next-auth/jwt" {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  // Use environment secret, but HAVE A HARDCODED FALLBACK so it NEVER fails with 'Configuration' error
   secret: process.env.AUTH_SECRET || "codigo_apparel_production_secret_key_2024_secure_v5",
   trustHost: true,
   session: {
-    strategy: "jwt"
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60 // 30 days
   },
   providers: [
     CredentialsProvider({

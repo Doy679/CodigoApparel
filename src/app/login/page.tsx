@@ -1,12 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
+import { loginAction } from "@/lib/actions";
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
@@ -14,13 +12,8 @@ export default function LoginPage() {
   useEffect(() => {
     const errorParam = searchParams.get("error");
     if (errorParam) {
-      // Move to next tick to avoid synchronous setState in effect warning
       const timer = setTimeout(() => {
-        if (errorParam === "Configuration") {
-          setError(
-            "Server Configuration Error: Check AUTH_SECRET and environment variables in Vercel."
-          );
-        } else if (errorParam === "CredentialsSignin") {
+        if (errorParam === "CredentialsSignin") {
           setError("Invalid username or password.");
         } else {
           setError(`Authentication Error: ${errorParam}`);
@@ -30,31 +23,15 @@ export default function LoginPage() {
     }
   }, [searchParams]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  async function handleForm(formData: FormData) {
     setLoading(true);
     setError("");
-
-    try {
-      const res = await signIn("credentials", {
-        username,
-        password,
-        redirect: false
-      });
-
-      if (res?.error) {
-        setError("Invalid username or password");
-        setLoading(false);
-      } else {
-        // Force a hard refresh to ensure the session is correctly picked up by middleware
-        window.location.href = "/admin";
-      }
-    } catch (err) {
-      console.error("Login error:", err);
-      setError("An unexpected error occurred. Please try again.");
+    const result = await loginAction(formData);
+    if (result) {
+      setError(result);
       setLoading(false);
     }
-  };
+  }
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center font-['Montserrat',sans-serif]">
@@ -72,15 +49,14 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form action={handleForm} className="space-y-6">
           <div>
             <label className="block text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2">
               Username
             </label>
             <input
+              name="username"
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
               className="w-full bg-black border border-neutral-800 text-white px-4 py-3 focus:outline-none focus:border-white transition-colors"
               required
             />
@@ -91,9 +67,8 @@ export default function LoginPage() {
               Password
             </label>
             <input
+              name="password"
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               className="w-full bg-black border border-neutral-800 text-white px-4 py-3 focus:outline-none focus:border-white transition-colors"
               required
             />
