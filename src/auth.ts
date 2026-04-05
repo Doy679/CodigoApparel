@@ -61,12 +61,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
+        console.log("JWT callback - user logged in, assigned role:", user.role);
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.role = token.role as string | undefined;
+        console.log("Session callback - session created for role:", session.user.role);
       }
       return session;
     }

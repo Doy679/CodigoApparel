@@ -35,17 +35,23 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
-    // Use the native NextAuth redirect. This is much more reliable on live servers
-    // because it ensures the cookie is set before the redirect happens.
-    const res = (await signIn("credentials", {
-      username,
-      password,
-      callbackUrl: "/admin",
-      redirect: true
-    })) as { error: string | null } | undefined;
+    try {
+      const res = await signIn("credentials", {
+        username,
+        password,
+        redirect: false
+      });
 
-    if (res?.error) {
-      setError("Invalid username or password");
+      if (res?.error) {
+        setError("Invalid username or password");
+        setLoading(false);
+      } else {
+        // Force a hard refresh to ensure the session is correctly picked up by middleware
+        window.location.href = "/admin";
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      setError("An unexpected error occurred. Please try again.");
       setLoading(false);
     }
   };
