@@ -2,33 +2,30 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    const res = await signIn("credentials", {
+    // Use the native NextAuth redirect. This is much more reliable on live servers
+    // because it ensures the cookie is set before the redirect happens.
+    const res = (await signIn("credentials", {
       username,
       password,
-      redirect: false
-    });
+      callbackUrl: "/admin",
+      redirect: true
+    })) as { error: string | null } | undefined;
 
     if (res?.error) {
       setError("Invalid username or password");
       setLoading(false);
-    } else {
-      // Force a hard reload to ensure the session cookie is correctly synchronized
-      // This fixes the "redirect loop" issue on live servers
-      window.location.href = "/admin";
     }
   };
 

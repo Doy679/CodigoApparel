@@ -23,6 +23,7 @@ declare module "next-auth/jwt" {
 export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   trustHost: true,
+  debug: process.env.NODE_ENV === "development", // Set true to see detailed logs in your live server console
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60
@@ -53,23 +54,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        const adminUsername = process.env.ADMIN_USERNAME;
+        const adminUsername = process.env.ADMIN_USERNAME || "admin";
         const adminPassword = process.env.ADMIN_PASSWORD;
 
-        if (!adminUsername || !adminPassword) {
-          console.error("ADMIN credentials not set in environment variables");
+        if (!adminPassword) {
+          console.error("ADMIN_PASSWORD not set in environment variables");
           return null;
         }
 
         if (credentials.username === adminUsername && credentials.password === adminPassword) {
+          // IMPORTANT: Return a full object that NextAuth likes.
           return {
-            id: "1",
+            id: "admin-1",
             name: "Admin",
             email: "admin@codigo.com",
             role: "admin"
           };
         }
 
+        console.log("Login failed for username:", credentials.username);
         return null;
       }
     })
