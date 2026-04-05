@@ -21,13 +21,10 @@ declare module "next-auth/jwt" {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  secret:
-    process.env.AUTH_SECRET ||
-    process.env.NEXTAUTH_SECRET ||
-    "fallback_secret_codigo_apparel_secure_12345",
+  secret: process.env.AUTH_SECRET,
   trustHost: true,
   session: {
-    strategy: "jwt"
+    strategy: "jwt",
   },
   providers: [
     CredentialsProvider({
@@ -45,7 +42,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const adminPassword = process.env.ADMIN_PASSWORD;
 
         if (!adminPassword) {
-          console.error("CRITICAL: ADMIN_PASSWORD environment variable is missing!");
+          console.error("ADMIN_PASSWORD is not set in environment variables");
           return null;
         }
 
@@ -54,7 +51,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             id: "admin",
             name: "Admin",
             email: "admin@codigo.com",
-            role: "admin"
+            role: "admin",
           };
         }
 
