@@ -2,6 +2,7 @@ import NextAuth, { type DefaultSession } from "next-auth";
 import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 
+// Extend the session and user types for the 'role' field
 declare module "next-auth" {
   interface Session {
     user: {
@@ -21,49 +22,36 @@ declare module "next-auth/jwt" {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  debug: true, // This will show us EXACTLY what is wrong in the logs
-  secret: process.env.AUTH_SECRET || "codigo_apparel_production_secret_key_2024_secure_v5",
-  trustHost: true,
-  session: {
-    strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60
-  },
+  // Use session strategy for Credentials provider
+  session: { strategy: "jwt" },
   providers: [
     CredentialsProvider({
-      name: "Admin Login",
+      name: "Admin Portal",
       credentials: {
         username: { label: "Username", type: "text" },
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        const u = credentials?.username as string;
-        const p = credentials?.password as string;
+        if (!credentials?.username || !credentials?.password) return null;
 
-        // Hardcoded for 100% stability during fix
-        if (u === "admin" && p === "adminside123") {
+        const adminUsername = process.env.ADMIN_USERNAME || "admin";
+        const adminPassword = process.env.ADMIN_PASSWORD || "decode777";
+
+        // Admin check logic
+        if (credentials.username === adminUsername && credentials.password === adminPassword) {
           return {
-            id: "admin-id",
-            name: "Admin User",
+            id: "admin-user",
+            name: "Admin",
             email: "admin@codigo.com",
             role: "admin"
           };
         }
+
         return null;
       }
     })
   ],
   callbacks: {
-    authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user;
-      const isAdmin = auth?.user?.role === "admin";
-      const isDashboard = nextUrl.pathname.startsWith("/admin");
-
-      if (isDashboard) {
-        if (isLoggedIn && isAdmin) return true;
-        return false; // Redirects to login automatically
-      }
-      return true;
-    },
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role;
@@ -71,8 +59,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      if (session.user && token.role) {
-        session.user.role = token.role as string;
+      if (session.user) {
+        session.user.role = token.role as string | undefined;
       }
       return session;
     }

@@ -1,9 +1,23 @@
 import { auth } from "./auth";
+import { NextResponse } from "next/server";
 
 export default auth((req) => {
-  // We are removing all redirect logic from here.
-  // The redirection will now be handled EXCLUSIVELY by the Server Components (Layouts),
-  // which is 100% stable and does not cause redirect loops.
+  const { nextUrl } = req;
+  const isLoggedIn = !!req.auth;
+
+  const isAdminRoute = nextUrl.pathname.startsWith("/admin");
+  const isLoginPage = nextUrl.pathname === "/login";
+
+  // 1. If trying to access admin and NOT logged in, redirect to login
+  if (isAdminRoute && !isLoggedIn) {
+    return NextResponse.redirect(new URL("/login", nextUrl));
+  }
+
+  // 2. If trying to access login but ALREADY logged in, redirect to admin
+  if (isLoginPage && isLoggedIn) {
+    return NextResponse.redirect(new URL("/admin", nextUrl));
+  }
+
   return;
 });
 
