@@ -2,23 +2,38 @@ import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 
 export default auth((req) => {
-  const isLoggedIn = !!req.auth;
   const { nextUrl } = req;
+  const isLoggedIn = !!req.auth;
+  const userRole = req.auth?.user?.role;
+
+  // Paths that should never be blocked or redirected by middleware
   const isApiAuthRoute = nextUrl.pathname.startsWith("/api/auth");
+  const isPublicApiRoute =
+    nextUrl.pathname.startsWith("/api") && !nextUrl.pathname.startsWith("/api/admin");
+  const isNextInternal =
+    nextUrl.pathname.startsWith("/_next") || nextUrl.pathname === "/favicon.ico";
+
+  if (isApiAuthRoute || isPublicApiRoute || isNextInternal) {
+    return NextResponse.next();
+  }
+
   const isAdminRoute = nextUrl.pathname.startsWith("/admin");
   const isLoginRoute = nextUrl.pathname === "/login";
 
-  if (isApiAuthRoute) return NextResponse.next();
-
+  // Case 1: Trying to access Admin area
   if (isAdminRoute) {
-    if (isLoggedIn && req.auth?.user?.role === "admin") {
-      return NextResponse.next();
+    if (!isLoggedIn || userRole !== "admin") {
+      const loginUrl = new URL("/login", nextUrl.origin);
+      // Optional: append the current path so we can redirect back after login
+      loginUrl.searchParams.set("callbackUrl", nextUrl.pathname);
+      return NextResponse.redirect(loginUrl);
     }
-    return NextResponse.redirect(new URL("/login", nextUrl));
+    return NextResponse.next();
   }
 
-  if (isLoginRoute && isLoggedIn && req.auth?.user?.role === "admin") {
-    return NextResponse.redirect(new URL("/admin", nextUrl));
+  // Case 2: Already logged in as Admin, trying to see Login page
+  if (isLoginRoute && isLoggedIn && userRole === "admin") {
+    return NextResponse.redirect(new URL("/admin", nextUrl.origin));
   }
 
   return NextResponse.next();

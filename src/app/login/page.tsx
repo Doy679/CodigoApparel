@@ -19,14 +19,16 @@ export default function LoginPage() {
     const res = await signIn("credentials", {
       username,
       password,
-      redirect: false,
+      redirect: false
     });
 
     if (res?.error) {
       setError("Invalid username or password");
       setLoading(false);
     } else {
-      router.push("/admin");
+      // Force a hard reload to ensure the session cookie is correctly synchronized
+      // This fixes the "redirect loop" issue on live servers
+      window.location.href = "/admin";
     }
   };
 
@@ -34,7 +36,9 @@ export default function LoginPage() {
     <div className="min-h-screen bg-black flex items-center justify-center font-['Montserrat',sans-serif]">
       <div className="bg-neutral-900 p-8 w-full max-w-md border border-neutral-800">
         <div className="text-center mb-8">
-          <h1 className="text-white text-3xl font-black uppercase tracking-widest italic mb-2">CODIGO</h1>
+          <h1 className="text-white text-3xl font-black uppercase tracking-widest italic mb-2">
+            CODIGO
+          </h1>
           <p className="text-neutral-500 text-xs tracking-[0.3em] uppercase">Admin Portal</p>
         </div>
 
