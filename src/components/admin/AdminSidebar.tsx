@@ -13,6 +13,7 @@ import {
   MessageSquare
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { signOut } from "next-auth/react";
 
 const navItems = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
@@ -71,7 +72,10 @@ export default function AdminSidebar() {
       </nav>
 
       <div className="p-8 mt-auto border-t border-neutral-900">
-        <button className="flex items-center gap-4 text-neutral-500 hover:text-white transition-colors w-full group">
+        <button
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="flex items-center gap-4 text-neutral-500 hover:text-white transition-colors w-full group"
+        >
           <LogOut size={18} />
           <span className="text-[10px] font-black uppercase tracking-[0.2em] italic">
             Exit Admin

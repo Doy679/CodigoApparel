@@ -21,6 +21,11 @@ declare module "next-auth/jwt" {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  trustHost: true,
+  session: {
+    strategy: "jwt"
+  },
   providers: [
     CredentialsProvider({
       name: "Admin Login",
@@ -29,11 +34,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
+        if (!credentials?.username || !credentials?.password) {
+          return null;
+        }
+
         const adminUsername = process.env.ADMIN_USERNAME;
         const adminPassword = process.env.ADMIN_PASSWORD;
 
-        if (credentials?.username === adminUsername && credentials?.password === adminPassword) {
-          return { id: "1", name: "Admin", role: "admin" };
+        if (!adminUsername || !adminPassword) {
+          console.error("ADMIN credentials not set in environment variables");
+          return null;
+        }
+
+        if (credentials.username === adminUsername && credentials.password === adminPassword) {
+          return {
+            id: "1",
+            name: "Admin",
+            email: "admin@codigo.com",
+            role: "admin"
+          };
         }
 
         return null; // Login failed
@@ -55,6 +74,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }
   },
   pages: {
-    signIn: "/login"
+    signIn: "/login",
+    error: "/login"
   }
 });
