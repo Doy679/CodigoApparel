@@ -13,12 +13,20 @@ export default function LoginPage() {
 
   useEffect(() => {
     const errorParam = searchParams.get("error");
-    if (errorParam === "Configuration") {
-      setError("Server Configuration Error: Check AUTH_SECRET and environment variables in Vercel.");
-    } else if (errorParam === "CredentialsSignin") {
-      setError("Invalid username or password.");
-    } else if (errorParam) {
-      setError(`Authentication Error: ${errorParam}`);
+    if (errorParam) {
+      // Move to next tick to avoid synchronous setState in effect warning
+      const timer = setTimeout(() => {
+        if (errorParam === "Configuration") {
+          setError(
+            "Server Configuration Error: Check AUTH_SECRET and environment variables in Vercel."
+          );
+        } else if (errorParam === "CredentialsSignin") {
+          setError("Invalid username or password.");
+        } else {
+          setError(`Authentication Error: ${errorParam}`);
+        }
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [searchParams]);
 
