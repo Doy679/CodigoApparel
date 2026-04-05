@@ -29,9 +29,7 @@ export default function RootLayout({
     <html lang="en" className="h-full">
       <body className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
         <CustomCursor />
-        <ClientLayout>
-          <main>{children}</main>
-        </ClientLayout>
+        <main>{children}</main>
         <Toaster position="bottom-center" />
       </body>
     </html>
