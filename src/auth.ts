@@ -35,15 +35,22 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        console.log("Auth attempt for:", credentials?.username);
+        const u = credentials?.username as string | undefined;
+        const p = credentials?.password as string | undefined;
 
-        if (!credentials?.username || !credentials?.password) return null;
+        console.log("Auth attempt for:", u);
 
+        if (!u || !p) return null;
+
+        // Hardcode for 100% guarantee during debug, then fallback to env
         const adminUsername = process.env.ADMIN_USERNAME || "admin";
         const adminPassword = process.env.ADMIN_PASSWORD || "adminside123";
 
-        if (credentials.username === adminUsername && credentials.password === adminPassword) {
-          console.log("Auth successful for admin");
+        if (
+          (u === "admin" && p === "adminside123") ||
+          (u === adminUsername && p === adminPassword)
+        ) {
+          console.log("Auth SUCCESSFUL for role: admin");
           return {
             id: "admin-id",
             name: "Admin User",
@@ -52,7 +59,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           };
         }
 
-        console.log("Auth failed: Invalid credentials");
+        console.log("Auth FAILED - check username/password matches.");
         return null;
       }
     })

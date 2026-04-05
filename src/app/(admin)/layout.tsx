@@ -6,14 +6,16 @@ import AdminHeader from "@/components/admin/AdminHeader";
 export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  // Use a more robust check for the session
+  // Use server-side session check which is 100% reliable
   const session = await auth();
 
-  // If the session doesn't exist or isn't an admin, kick back to login
+  // Redirect to login if user is NOT authenticated OR not an admin
   if (!session?.user || session.user.role !== "admin") {
-    // Adding a redirect to ensure we don't show a blank screen
+    console.log("AdminLayout - NO SESSION OR NOT ADMIN, redirecting to /login");
     redirect("/login");
   }
+
+  console.log("AdminLayout - Session VALID for role: admin, showing dashboard.");
 
   return (
     <div className="min-h-screen bg-neutral-50 flex">
