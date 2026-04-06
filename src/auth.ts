@@ -20,6 +20,9 @@ declare module "next-auth/jwt" {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  secret: process.env.AUTH_SECRET || "codigo_apparel_production_secret_key_2024_secure_v5",
+  trustHost: true,
+  debug: process.env.NODE_ENV === "development",
   session: { strategy: "jwt" },
   providers: [
     CredentialsProvider({
