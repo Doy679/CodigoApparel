@@ -29,19 +29,16 @@ function LoginForm() {
     setError("");
 
     try {
-      const res = await signIn("credentials", {
+      // Use NATIVE redirect: true. This is the most stable way.
+      // NextAuth will handle the cookie timing perfectly.
+      await signIn("credentials", {
         username,
         password,
-        redirect: false
+        callbackUrl: "/admin",
+        redirect: true
       });
 
-      if (res?.error) {
-        setError("Invalid username or password");
-        setLoading(false);
-      } else {
-        // Use hard redirect to ensure session cookie is correctly registered
-        window.location.href = "/admin";
-      }
+      // If redirect is true, execution stops here on success.
     } catch (err) {
       setError("An unexpected error occurred.");
       setLoading(false);
