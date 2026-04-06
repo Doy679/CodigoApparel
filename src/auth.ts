@@ -2,14 +2,12 @@ import NextAuth, { type DefaultSession } from "next-auth";
 import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-// Extend the session and user types for the 'role' field
 declare module "next-auth" {
   interface Session {
     user: {
       role?: string;
     } & DefaultSession["user"];
   }
-
   interface User {
     role?: string;
   }
@@ -22,7 +20,6 @@ declare module "next-auth/jwt" {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  // Use session strategy for Credentials provider
   session: { strategy: "jwt" },
   providers: [
     CredentialsProvider({
@@ -37,7 +34,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const adminUsername = process.env.ADMIN_USERNAME || "admin";
         const adminPassword = process.env.ADMIN_PASSWORD || "decode777";
 
-        // Admin check logic
         if (credentials.username === adminUsername && credentials.password === adminPassword) {
           return {
             id: "admin-user",
@@ -46,7 +42,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             role: "admin"
           };
         }
-
         return null;
       }
     })
@@ -54,22 +49,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isAdmin = auth?.user?.role === "admin";
       const isDashboard = nextUrl.pathname.startsWith("/admin");
-      const isLoginPage = nextUrl.pathname === "/login";
 
-      // If trying to access admin dashboard
+      // If trying to access admin dashboard, require login
       if (isDashboard) {
-        if (isLoggedIn && isAdmin) return true; // Let them in
-        return false; // Redirect to login
+        return isLoggedIn;
       }
 
-      // If trying to access login page while already logged in as admin
-      if (isLoginPage && isLoggedIn && isAdmin) {
-        return Response.redirect(new URL("/admin", nextUrl));
-      }
-
-      return true; // Let them through for all other pages
+      return true; // Everything else is public
     },
     async jwt({ token, user }) {
       if (user) {
@@ -78,8 +65,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
-        session.user.role = token.role as string | undefined;
+      if (session.user && token.role) {
+        session.user.role = token.role as string;
       }
       return session;
     }
