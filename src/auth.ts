@@ -52,6 +52,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     })
   ],
   callbacks: {
+    authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = !!auth?.user;
+      const isAdmin = auth?.user?.role === "admin";
+      const isDashboard = nextUrl.pathname.startsWith("/admin");
+      const isLoginPage = nextUrl.pathname === "/login";
+
+      // If trying to access admin dashboard
+      if (isDashboard) {
+        if (isLoggedIn && isAdmin) return true; // Let them in
+        return false; // Redirect to login
+      }
+
+      // If trying to access login page while already logged in as admin
+      if (isLoginPage && isLoggedIn && isAdmin) {
+        return Response.redirect(new URL("/admin", nextUrl));
+      }
+
+      return true; // Let them through for all other pages
+    },
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role;

@@ -1,5 +1,4 @@
 import { auth } from "@/auth";
-import { redirect } from "next/navigation";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import AdminHeader from "@/components/admin/AdminHeader";
 
@@ -7,12 +6,8 @@ import AdminHeader from "@/components/admin/AdminHeader";
 export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const session = await auth();
-
-  // Redirect if not an admin
-  if (!session?.user || session.user.role !== "admin") {
-    redirect("/login");
-  }
+  // Redirection is now entirely managed by the 'authorized' callback in src/auth.ts
+  // This prevents any possibility of redirect loops.
 
   return (
     <div className="min-h-screen bg-neutral-50 flex">
