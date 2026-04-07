@@ -103,7 +103,7 @@ export default function IntroLoader({ onComplete }: { onComplete: () => void }) 
 
           <h1
             id="brand-name"
-            className="font-bold uppercase tracking-[-0.02em] leading-none mb-12 flex items-center justify-center text-8xl md:text-9xl lg:text-[12rem] select-none"
+            className="font-bold uppercase tracking-[-0.02em] leading-none mb-12 flex items-center justify-center text-5xl md:text-9xl lg:text-[12rem] select-none"
           >
             CODIGO
           </h1>
