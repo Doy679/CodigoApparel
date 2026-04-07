@@ -1,21 +1,24 @@
 "use client";
 
-import { notFound } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import Image from "next/image";
-import { ShoppingBag, ShieldCheck, Truck, RefreshCw } from "lucide-react";
+import { ShieldCheck, Truck, RefreshCw, Zap, ShoppingBag } from "lucide-react";
 import ProductGrid from "@/components/ProductGrid";
 import BackButton from "@/components/BackButton";
 import { useState, use } from "react";
 import { useCartStore } from "@/store/useCartStore";
 import { useProducts } from "@/hooks/useProducts";
+import { toast } from "sonner";
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const router = useRouter();
   const { products, loading } = useProducts();
   const product = products.find((p) => p.id === id);
   const [selectedSize, setSelectedSize] = useState<string | undefined>(undefined);
   const [activeImage, setActiveImage] = useState<string | null>(null);
-  const addToCart = useCartStore((state) => state.addToCart);
+  const [showSizeError, setShowSizeError] = useState(false);
+  const { addToCart, selectOnlyItem } = useCartStore();
 
   if (loading) {
     return <div className="min-h-screen bg-white pt-24 text-center">Loading...</div>;
@@ -27,6 +30,28 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   const allImages = [product.image, ...(product.additionalImages || [])];
   const currentImage = activeImage || product.image;
+
+  const handleAddToCart = () => {
+    if (!selectedSize && product.sizes && product.sizes.length > 0) {
+      setShowSizeError(true);
+      return;
+    }
+    setShowSizeError(false);
+    addToCart(product, selectedSize);
+    toast.success(`${product.name} added to cart.`);
+    router.push("/cart");
+  };
+
+  const handleBuyNow = () => {
+    if (!selectedSize && product.sizes && product.sizes.length > 0) {
+      setShowSizeError(true);
+      return;
+    }
+    setShowSizeError(false);
+    addToCart(product, selectedSize);
+    selectOnlyItem(product.id, selectedSize); // Ensure only this item is selected for checkout
+    router.push("/checkout");
+  };
 
   return (
     <div className="min-h-screen bg-white pt-24">
@@ -102,14 +127,24 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
             <div className="space-y-4 pt-4">
               <div className="flex flex-col gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest">
-                  Select Size
-                </span>
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] font-black uppercase tracking-widest">
+                    Select Size
+                  </span>
+                  {showSizeError && (
+                    <span className="text-[8px] font-black uppercase text-red-500 tracking-widest animate-pulse">
+                      Please select a size
+                    </span>
+                  )}
+                </div>
                 <div className="flex flex-wrap gap-2">
-                  {["S", "M", "L", "XL", "2XL", "3XL"].map((size) => (
+                  {(product.sizes || ["S", "M", "L", "XL", "2XL", "3XL"]).map((size) => (
                     <button
                       key={size}
-                      onClick={() => setSelectedSize(size)}
+                      onClick={() => {
+                        setSelectedSize(size);
+                        setShowSizeError(false);
+                      }}
                       className={`w-12 h-12 border-2 flex items-center justify-center text-xs font-black transition-all cursor-pointer ${
                         selectedSize === size
                           ? "border-black bg-black text-white"
@@ -122,13 +157,22 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                 </div>
               </div>
 
-              <button
-                onClick={() => addToCart(product, selectedSize)}
-                className="w-full bg-black text-white py-5 text-xs font-black uppercase tracking-[0.2em] hover:bg-neutral-800 transition-all flex items-center justify-center gap-3"
-              >
-                <ShoppingBag size={18} />
-                Add to Cart
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={handleAddToCart}
+                  className="flex-1 bg-white border-2 border-black text-black py-5 text-xs font-black uppercase tracking-[0.2em] hover:bg-neutral-50 transition-all flex items-center justify-center gap-3 cursor-pointer group"
+                >
+                  <ShoppingBag size={18} className="group-hover:scale-110 transition-transform" />
+                  Add to Cart
+                </button>
+                <button
+                  onClick={handleBuyNow}
+                  className="flex-1 bg-black text-white py-5 text-xs font-black uppercase tracking-[0.2em] hover:bg-neutral-800 transition-all flex items-center justify-center gap-3 cursor-pointer"
+                >
+                  <Zap size={18} className="fill-white" />
+                  Buy Now
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8 border-t border-neutral-100">

@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { regions, provinces, cities, barangays } from "select-philippines-address";
 import { getZipCode } from "@/data/ph-locations";
 import usePostalPH from "use-postal-ph";
+import { createOrder, OrderInput, OrderItemInput } from "@/lib/actions";
+import { CartItem } from "@/store/useCartStore";
 
 interface RegionData {
   region_code: string;
@@ -23,7 +25,7 @@ interface BarangayData {
   brgy_name: string;
 }
 
-export function useCheckout(clearCart: () => void) {
+export function useCheckout(cart: CartItem[], total: number, clearCart: () => void) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
@@ -36,6 +38,10 @@ export function useCheckout(clearCart: () => void) {
   const [barangayData, setBarangayData] = useState<BarangayData[]>([]);
 
   const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    streetAddress: "",
     region: "",
     regionCode: "",
     province: "",
@@ -146,18 +152,55 @@ export function useCheckout(clearCart: () => void) {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsProcessing(true);
     setShowAnimation(true);
 
-    // Simulate payment processing + animation time
-    setTimeout(() => {
+    try {
+      const orderItems: OrderItemInput[] = cart.map((item) => ({
+        productId: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        size: item.selectedSize
+      }));
+
+      const orderData: OrderInput = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        region: formData.region,
+        province: formData.province,
+        city: formData.city,
+        barangay: formData.barangay,
+        postalCode: formData.postalCode,
+        streetAddress: formData.streetAddress,
+        total: total,
+        items: orderItems
+      };
+
+      const result = await createOrder(orderData);
+
+      if (result.success) {
+        // Animation time
+        setTimeout(() => {
+          setIsProcessing(false);
+          setShowAnimation(false);
+          setIsSuccess(true);
+          clearCart();
+        }, 4500); // 4.5 seconds for a better animation experience
+      } else {
+        alert("Something went wrong. Please try again.");
+        setIsProcessing(false);
+        setShowAnimation(false);
+      }
+    } catch (error) {
+      console.error("Submit error:", error);
+      alert("Failed to submit order. Please try again.");
       setIsProcessing(false);
       setShowAnimation(false);
-      setIsSuccess(true);
-      clearCart();
-    }, 4500); // 4.5 seconds for a better animation experience
+    }
   };
 
   return {

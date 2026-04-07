@@ -10,8 +10,11 @@ import DeliveryAnimation from "@/components/DeliveryAnimation";
 import { useCheckout } from "@/hooks/useCheckout";
 
 export default function CheckoutPage() {
-  const { cart, clearCart } = useCartStore();
+  const { cart, clearSelectedItems } = useCartStore();
   const cartTotal = useCartTotal();
+
+  // Only checkout items that are selected
+  const selectedItems = cart.filter((item) => item.selected);
 
   const {
     isProcessing,
@@ -24,7 +27,7 @@ export default function CheckoutPage() {
     cityData,
     barangayData,
     handleSubmit
-  } = useCheckout(clearCart);
+  } = useCheckout(selectedItems, cartTotal, clearSelectedItems);
 
   if (showAnimation) {
     return <DeliveryAnimation />;
@@ -59,17 +62,17 @@ export default function CheckoutPage() {
     );
   }
 
-  if (cart.length === 0 && !isSuccess) {
+  if (selectedItems.length === 0 && !isSuccess) {
     return (
       <div className="min-h-screen bg-white flex flex-col items-center justify-center p-4 gap-6">
         <h1 className="text-2xl font-black uppercase italic tracking-tighter text-neutral-400">
-          Your bag is empty
+          No items selected for checkout
         </h1>
         <Link
-          href="/store"
+          href="/cart"
           className="bg-black text-white px-8 py-4 text-xs font-black uppercase tracking-widest"
         >
-          Go to Store
+          Back to Cart
         </Link>
       </div>
     );
@@ -79,11 +82,11 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-white pt-32 pb-24">
       <div className="container mx-auto px-4 md:px-8">
         <Link
-          href="/"
+          href="/cart"
           className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest hover:text-neutral-500 transition-colors mb-12"
         >
           <ArrowLeft size={14} />
-          Back to selection
+          Back to cart
         </Link>
 
         <h1 className="text-4xl md:text-6xl font-black uppercase italic tracking-tighter leading-none mb-16">
@@ -107,17 +110,23 @@ export default function CheckoutPage() {
                 <input
                   required
                   placeholder="First Name"
+                  value={formData.firstName}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                   className="border-b border-neutral-200 py-3 text-sm focus:border-black outline-none transition-colors uppercase font-bold tracking-tight"
                 />
                 <input
                   required
                   placeholder="Last Name"
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                   className="border-b border-neutral-200 py-3 text-sm focus:border-black outline-none transition-colors uppercase font-bold tracking-tight"
                 />
                 <input
                   required
                   placeholder="Email Address"
                   type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="md:col-span-2 border-b border-neutral-200 py-3 text-sm focus:border-black outline-none transition-colors uppercase font-bold tracking-tight"
                 />
 
@@ -132,7 +141,13 @@ export default function CheckoutPage() {
                       setFormData({
                         ...formData,
                         region: region.region_name,
-                        regionCode: e.target.value
+                        regionCode: e.target.value,
+                        province: "",
+                        provinceCode: "",
+                        city: "",
+                        cityCode: "",
+                        barangay: "",
+                        postalCode: ""
                       });
                     }
                   }}
@@ -159,7 +174,11 @@ export default function CheckoutPage() {
                       setFormData({
                         ...formData,
                         province: province.province_name,
-                        provinceCode: e.target.value
+                        provinceCode: e.target.value,
+                        city: "",
+                        cityCode: "",
+                        barangay: "",
+                        postalCode: ""
                       });
                     }
                   }}
@@ -183,7 +202,13 @@ export default function CheckoutPage() {
                   onChange={(e) => {
                     const city = cityData.find((c) => c.city_code === e.target.value);
                     if (city) {
-                      setFormData({ ...formData, city: city.city_name, cityCode: e.target.value });
+                      setFormData({
+                        ...formData,
+                        city: city.city_name,
+                        cityCode: e.target.value,
+                        barangay: "",
+                        postalCode: ""
+                      });
                     }
                   }}
                 >
@@ -225,6 +250,8 @@ export default function CheckoutPage() {
                 <input
                   required
                   placeholder="Street Address / House No."
+                  value={formData.streetAddress}
+                  onChange={(e) => setFormData({ ...formData, streetAddress: e.target.value })}
                   className="md:col-span-2 border-b border-neutral-200 py-3 text-sm focus:border-black outline-none transition-colors uppercase font-bold tracking-tight"
                 />
               </div>
@@ -259,11 +286,11 @@ export default function CheckoutPage() {
           {/* Order Summary */}
           <div className="bg-neutral-50 p-8 md:p-12 space-y-8">
             <h2 className="text-xs font-black uppercase tracking-[0.3em] border-b border-neutral-200 pb-4">
-              Order Summary
+              Order Summary ({selectedItems.length})
             </h2>
 
             <div className="space-y-6">
-              {cart.map((item) => (
+              {selectedItems.map((item) => (
                 <div key={item.id + item.selectedSize} className="flex gap-4">
                   <div className="relative w-16 aspect-[3/4] bg-neutral-200 overflow-hidden">
                     <Image src={item.image} alt={item.name} fill className="object-cover" />
