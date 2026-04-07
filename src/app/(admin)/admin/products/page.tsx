@@ -47,6 +47,11 @@ export default function AdminProducts() {
       return;
     }
 
+    if (!supabase) {
+      toast.error("Cloud storage is not configured properly.");
+      return;
+    }
+
     const toastId = toast.loading("Uploading image...");
 
     try {
@@ -96,11 +101,15 @@ export default function AdminProducts() {
   };
 
   const filteredProducts = useMemo(() => {
+    if (!Array.isArray(products)) return [];
     return products.filter(
       (p) =>
-        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.id.includes(searchTerm)
+        p &&
+        p.name &&
+        p.category &&
+        (p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          p.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          p.id.includes(searchTerm))
     );
   }, [products, searchTerm]);
 
@@ -178,7 +187,10 @@ export default function AdminProducts() {
   };
 
   const handleAddNewClick = () => {
-    const nextId = (Math.max(...products.map((p) => parseInt(p.id)), 0) + 1).toString();
+    const numericIds = Array.isArray(products)
+      ? products.map((p) => parseInt(p.id)).filter((id) => !isNaN(id))
+      : [];
+    const nextId = (Math.max(...numericIds, 0) + 1).toString();
     setSelectedProduct({
       id: nextId,
       name: "",

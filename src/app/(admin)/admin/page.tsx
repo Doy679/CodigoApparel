@@ -35,7 +35,9 @@ export default function AdminDashboard() {
   }
 
   const stats = getStats();
-  const lowStockProducts = products.filter((p) => p.stock <= 5);
+  const safeProducts = Array.isArray(products) ? products : [];
+  const safeOrders = Array.isArray(orders) ? orders : [];
+  const lowStockProducts = safeProducts.filter((p) => p && (p.stock || 0) <= 5);
 
   return (
     <div className="space-y-12 py-10">
@@ -89,7 +91,7 @@ export default function AdminDashboard() {
             </div>
 
             <div className="space-y-6">
-              {orders.slice(0, 3).map((order, i) => (
+              {safeOrders.slice(0, 3).map((order, i) => (
                 <div
                   key={order.id}
                   className="flex items-center justify-between group cursor-pointer"
@@ -201,9 +203,10 @@ export default function AdminDashboard() {
           </div>
 
           <div className="space-y-8">
-            {products.slice(0, 4).map((product, idx) => {
-              const stockPercentage = Math.min((product.stock / 20) * 100, 100);
-              const isLowStock = product.stock <= 5;
+            {safeProducts.slice(0, 4).map((product, idx) => {
+              const productStock = product.stock || 0;
+              const stockPercentage = Math.min((productStock / 20) * 100, 100);
+              const isLowStock = productStock <= 5;
 
               return (
                 <div key={product.id} className="space-y-4">
@@ -214,7 +217,7 @@ export default function AdminDashboard() {
                     <span
                       className={`text-[10px] font-bold tracking-widest ${isLowStock ? "text-red-500" : "text-neutral-500"}`}
                     >
-                      {isLowStock ? `LOW STOCK (${product.stock})` : `IN STOCK (${product.stock})`}
+                      {isLowStock ? `LOW STOCK (${productStock})` : `IN STOCK (${productStock})`}
                     </span>
                   </div>
                   <div className="h-1 bg-neutral-900 overflow-hidden">

@@ -244,20 +244,36 @@ export const useAdminStore = create<AdminState>()(
         }),
 
       getStats: () => {
-        const { products, orders, chats } = get();
+        try {
+          const { products, orders, chats } = get();
 
-        const totalRevenue = orders.reduce((acc, order) => acc + order.total, 0);
-        const lowStockCount = products.filter((p) => p.stock <= 5).length;
-        const openConcerns = chats.filter((c) => c.status === "open").length;
+          const safeProducts = Array.isArray(products) ? products : [];
+          const safeOrders = Array.isArray(orders) ? orders : [];
+          const safeChats = Array.isArray(chats) ? chats : [];
 
-        return {
-          totalRevenue: `₱${totalRevenue.toLocaleString()}`,
-          totalOrders: orders.length,
-          totalCustomers: 1240, // Mocked for now
-          avgOrderValue: `₱${Math.round(totalRevenue / (orders.length || 1)).toLocaleString()}`,
-          lowStockCount,
-          openConcerns
-        };
+          const totalRevenue = safeOrders.reduce((acc, order) => acc + (order.total || 0), 0);
+          const lowStockCount = safeProducts.filter((p) => p && (p.stock || 0) <= 5).length;
+          const openConcerns = safeChats.filter((c) => c && c.status === "open").length;
+
+          return {
+            totalRevenue: `₱${totalRevenue.toLocaleString()}`,
+            totalOrders: safeOrders.length,
+            totalCustomers: 1240, // Mocked for now
+            avgOrderValue: `₱${Math.round(totalRevenue / (safeOrders.length || 1)).toLocaleString()}`,
+            lowStockCount,
+            openConcerns
+          };
+        } catch (error) {
+          console.error("Error calculating stats:", error);
+          return {
+            totalRevenue: "₱0",
+            totalOrders: 0,
+            totalCustomers: 0,
+            avgOrderValue: "₱0",
+            lowStockCount: 0,
+            openConcerns: 0
+          };
+        }
       }
     }),
     {
