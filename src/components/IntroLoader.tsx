@@ -95,15 +95,15 @@ export default function IntroLoader({ onComplete }: { onComplete: () => void }) 
         ))}
       </div>
 
-      <div className="relative z-10 flex flex-col items-center w-full max-w-4xl px-6 text-center">
-        <div id="brand-container" className="text-center">
+      <div className="relative z-10 flex flex-col items-center w-full max-w-4xl px-4 text-center">
+        <div id="brand-container" className="text-center w-full">
           <h2 className="text-[10px] tracking-[1.5em] text-white/20 mb-12 uppercase font-black">
             System Initializing
           </h2>
 
           <h1
             id="brand-name"
-            className="font-bold uppercase tracking-[-0.02em] leading-none mb-12 flex items-center justify-center text-5xl md:text-9xl lg:text-[12rem] select-none"
+            className="font-bold uppercase tracking-[-0.02em] leading-none mb-12 flex items-center justify-center text-4xl sm:text-5xl md:text-9xl lg:text-[12rem] select-none break-all"
           >
             CODIGO
           </h1>
