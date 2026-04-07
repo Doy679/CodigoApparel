@@ -43,8 +43,10 @@ export default function IntroLoader({ onComplete }: { onComplete: () => void }) 
         rotateX: 0,
         z: 0,
         duration: 2,
-        ease: "expo.out"
+        ease: "expo.out",
+        clearProps: "transform" // This forces the browser back to sharp 2D rendering
       })
+
       .to(
         ".data-point",
         {
@@ -128,15 +130,20 @@ export default function IntroLoader({ onComplete }: { onComplete: () => void }) 
           __html: `
         @import url('https://fonts.googleapis.com/css2?family=Syne:wght@800&display=swap');
         
+        #brand-container {
+          perspective: 1000px;
+          filter: drop-shadow(0 0 20px rgba(255,255,255,0.1));
+        }
+
         #brand-name {
           font-family: 'Syne', sans-serif;
           letter-spacing: -0.05em;
-          text-shadow: 0 0 30px rgba(255,255,255,0.05);
-          filter: drop-shadow(0 0 10px rgba(255,255,255,0.1));
-          background: linear-gradient(to bottom, #ffffff 30%, #b0b0b0 100%);
+          background: linear-gradient(to bottom, #ffffff 40%, #a0a0a0 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
-          will-change: transform, opacity;
+          -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
+          transform: translateZ(0);
           backface-visibility: hidden;
         }
 
