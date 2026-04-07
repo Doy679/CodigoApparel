@@ -1,12 +1,13 @@
 "use client";
 
-// IntroLoader v3.0 - KINETIC MONOLITH REDESIGN
+// IntroLoader v3.1 - ETHEREAL DARKROOM REDESIGN (No Lines)
 import { useEffect, useRef, useMemo } from "react";
 import gsap from "gsap";
 
-const STATIC_DATA_POINTS = [...Array(15)].map(() => ({
+const STATIC_DATA_POINTS = [...Array(20)].map(() => ({
   left: `${Math.random() * 100}%`,
-  top: `${Math.random() * 100}%`
+  top: `${Math.random() * 100}%`,
+  delay: `${Math.random() * 2}s`
 }));
 
 export default function IntroLoader({ onComplete }: { onComplete: () => void }) {
@@ -17,65 +18,53 @@ export default function IntroLoader({ onComplete }: { onComplete: () => void }) 
     const tl = gsap.timeline({
       onComplete: () => {
         gsap.to(loaderRef.current, {
-          yPercent: -100,
-          duration: 1.2,
-          ease: "expo.inOut",
+          opacity: 0,
+          duration: 1.5,
+          ease: "power4.inOut",
           onComplete: onComplete
         });
       }
     });
 
     // 1. Initial States
-    gsap.set(".char", { y: 150, opacity: 0 });
-    gsap.set(".sub-text", { opacity: 0, y: 10 });
-    gsap.set(".tech-line", { scaleY: 0 });
+    gsap.set(".char", { y: 100, opacity: 0, filter: "blur(20px)", scale: 0.8 });
+    gsap.set(".sub-text", { opacity: 0, y: 20 });
 
     // 2. TIMELINE SEQUENCE
-    tl.to({}, { duration: 0.5 }) // Tension hold
+    tl.to({}, { duration: 0.8 }) // Initial hold
 
-      // Phase A: Tech Grid Emergence
-      .to(".tech-line", {
-        scaleY: 1,
-        opacity: 0.1,
-        duration: 1,
-        stagger: { amount: 0.5, from: "center" },
-        ease: "power4.inOut"
+      // Phase A: Elegant Brand Emergence
+      .to(".char", {
+        y: 0,
+        opacity: 1,
+        filter: "blur(0px)",
+        scale: 1,
+        duration: 2,
+        stagger: { amount: 0.6, from: "center" },
+        ease: "expo.out"
       })
-
-      // Phase B: The Snap Reveal (Tracking + Stagger)
-      .to(
-        ".char",
-        {
-          y: 0,
-          opacity: 1,
-          duration: 1.5,
-          stagger: 0.08,
-          ease: "expo.out"
-        },
-        "-=0.5"
-      )
 
       .fromTo(
         brandRef.current,
-        { letterSpacing: "1em" },
-        { letterSpacing: "-0.02em", duration: 2, ease: "expo.out" },
-        "-=1.5"
+        { letterSpacing: "0.5em" },
+        { letterSpacing: "-0.02em", duration: 2.5, ease: "expo.out" },
+        "-=1.8"
       )
 
-      // Phase C: Info Reveal
+      // Phase B: Content Reveal
       .to(
         ".sub-text",
         {
           opacity: 1,
           y: 0,
-          duration: 1,
-          stagger: 0.2,
-          ease: "power3.out"
+          duration: 1.5,
+          stagger: 0.3,
+          ease: "power2.out"
         },
-        "-=1"
+        "-=1.2"
       )
 
-      .to({}, { duration: 1.5 }); // Final Hold
+      .to({}, { duration: 1.5 }); // Final Hold for brand memory
 
     return () => {
       tl.kill();
@@ -87,27 +76,24 @@ export default function IntroLoader({ onComplete }: { onComplete: () => void }) 
       ref={loaderRef}
       className="fixed inset-0 z-[100] flex flex-col justify-center items-center bg-[#050505] text-white overflow-hidden font-['Montserrat',sans-serif]"
     >
-      {/* Tech Grid Background */}
-      <div className="absolute inset-0 flex justify-around px-10 pointer-events-none">
-        {[...Array(8)].map((_, i) => (
-          <div key={i} className="tech-line w-px h-full bg-white origin-top opacity-0" />
-        ))}
-      </div>
-
-      {/* Background Stardust */}
-      <div className="absolute inset-0 z-0 opacity-10">
+      {/* Subtle Background Stardust */}
+      <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
         {STATIC_DATA_POINTS.map((point, i) => (
           <div
             key={i}
-            className="absolute w-[2px] h-[2px] bg-white rounded-full"
-            style={{ left: point.left, top: point.top }}
+            className="absolute w-[1px] h-[1px] bg-white rounded-full animate-pulse"
+            style={{
+              left: point.left,
+              top: point.top,
+              animationDelay: point.delay
+            }}
           />
         ))}
       </div>
 
       <div className="relative z-10 flex flex-col items-center w-full max-w-6xl px-4 text-center">
         <div id="brand-container" className="relative">
-          <h2 className="sub-text text-[9px] tracking-[1.5em] text-white/30 mb-12 uppercase font-black">
+          <h2 className="sub-text text-[10px] tracking-[1.5em] text-white/20 mb-12 uppercase font-black">
             System Protocol 2.6
           </h2>
 
@@ -151,7 +137,7 @@ export default function IntroLoader({ onComplete }: { onComplete: () => void }) 
         }
 
         #brand-container {
-          filter: drop-shadow(0 0 30px rgba(255,255,255,0.05));
+          filter: drop-shadow(0 0 40px rgba(255,255,255,0.05));
         }
       `
         }}
