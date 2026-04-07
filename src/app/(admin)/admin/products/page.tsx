@@ -18,7 +18,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useAdminStore } from "@/store/useAdminStore";
 import { toast } from "sonner";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 export default function AdminProducts() {
   const [mounted, setMounted] = useState(false);
@@ -42,6 +42,13 @@ export default function AdminProducts() {
   }, []);
 
   const handleImageUpload = async (file: File) => {
+    if (!isSupabaseConfigured) {
+      toast.error(
+        "Image uploads are disabled. Please configure Supabase URL and Key in your .env file."
+      );
+      return;
+    }
+
     if (!file.type.startsWith("image/")) {
       toast.error("Please upload an image file.");
       return;

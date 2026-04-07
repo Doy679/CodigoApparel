@@ -3,15 +3,13 @@
 import Link from "next/link";
 import { Search, ShoppingBag, User, Menu } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useCartStore, useCartCount } from "@/store/useCartStore";
-import CartDrawer from "./CartDrawer";
+import { useCartCount } from "@/store/useCartStore";
 import SearchOverlay from "./SearchOverlay";
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const setIsCartOpen = useCartStore((state) => state.setIsCartOpen);
   const cartCount = useCartCount();
 
   useEffect(() => {
@@ -62,30 +60,33 @@ export default function Header() {
               </Link>
             </div>
 
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4 md:gap-6">
               <button
                 onClick={() => setIsSearchOpen(true)}
                 className="hover:text-neutral-400 transition-colors"
+                title="Search"
               >
                 <Search size={18} />
               </button>
-              <button className="hover:text-neutral-400 transition-colors hidden sm:block">
-                <User size={18} />
-              </button>
-              <button
-                onClick={() => setIsCartOpen(true)}
+
+              <Link
+                href="/cart"
                 className="hover:text-neutral-400 transition-colors flex items-center gap-2 relative"
+                title="Your Cart"
               >
                 <ShoppingBag size={18} />
                 <span className="text-[10px] font-black uppercase tracking-widest">
                   ({isMounted ? cartCount : 0})
                 </span>
+              </Link>
+
+              <button className="hover:text-neutral-400 transition-colors hidden sm:block">
+                <User size={18} />
               </button>
             </div>
           </div>
         </div>
       </header>
-      <CartDrawer />
       <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </>
   );

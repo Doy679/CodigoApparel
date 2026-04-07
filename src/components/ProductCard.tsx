@@ -3,17 +3,19 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { ShoppingBag, Eye } from "lucide-react";
+import { Eye, Zap, ShoppingBag } from "lucide-react";
 import { Product } from "@/data/products";
 import { motion } from "framer-motion";
 import { useCartStore } from "@/store/useCartStore";
 import { toast } from "sonner";
 import QuickViewModal from "./QuickViewModal";
+import { useRouter } from "next/navigation";
 
 export default function ProductCard({ product }: { product: Product }) {
+  const router = useRouter();
   const [isHovered, setIsHovered] = useState(false);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
-  const addToCart = useCartStore((state) => state.addToCart);
+  const { addToCart, selectOnlyItem } = useCartStore();
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -27,7 +29,24 @@ export default function ProductCard({ product }: { product: Product }) {
     }
 
     addToCart(product);
-    toast.success(`${product.name} added to cart`);
+    toast.success(`${product.name} added to cart.`);
+    router.push("/cart");
+  };
+
+  const handleBuyNow = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (product.sizes && product.sizes.length > 0) {
+      // If it has sizes, prompt quick view instead so they can choose
+      setIsQuickViewOpen(true);
+      toast("Please select a size first.");
+      return;
+    }
+
+    addToCart(product);
+    selectOnlyItem(product.id); // Only this item for checkout
+    router.push("/checkout");
   };
 
   const handleQuickView = (e: React.MouseEvent) => {
@@ -83,19 +102,29 @@ export default function ProductCard({ product }: { product: Product }) {
 
           {/* Hover Overlay */}
           <div
-            className={`absolute inset-0 bg-black/5 flex flex-col items-center justify-end p-6 transition-all duration-300 opacity-0 group-hover:opacity-100`}
+            className={`absolute inset-0 bg-black/5 flex flex-col items-center justify-end p-4 transition-all duration-300 opacity-0 group-hover:opacity-100`}
           >
-            <div className="flex gap-2 w-full">
+            <div className="flex gap-1.5 w-full">
               <button
                 onClick={handleAddToCart}
-                className="flex-1 bg-white text-black py-3 text-[10px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all flex items-center justify-center gap-2 cursor-pointer"
+                title="Add to Cart"
+                className="flex-1 bg-white text-black py-3 text-[8px] font-black uppercase tracking-widest hover:bg-neutral-100 transition-all flex flex-col items-center justify-center gap-1 cursor-pointer border border-neutral-200"
               >
-                <ShoppingBag size={14} />
-                Add to Cart
+                <ShoppingBag size={12} />
+                <span>+ Cart</span>
+              </button>
+              <button
+                onClick={handleBuyNow}
+                title="Buy Now"
+                className="flex-1 bg-black text-white py-3 text-[8px] font-black uppercase tracking-widest hover:bg-neutral-800 transition-all flex flex-col items-center justify-center gap-1 cursor-pointer"
+              >
+                <Zap size={12} className="fill-white" />
+                <span>Buy Now</span>
               </button>
               <button
                 onClick={handleQuickView}
-                className="bg-white text-black p-3 hover:bg-black hover:text-white transition-all flex items-center justify-center cursor-pointer"
+                title="Quick View"
+                className="bg-white text-black px-3 py-3 hover:bg-neutral-100 transition-all flex items-center justify-center cursor-pointer border border-neutral-200"
               >
                 <Eye size={14} />
               </button>
