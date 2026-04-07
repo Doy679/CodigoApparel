@@ -1,7 +1,7 @@
 "use client";
 
 // IntroLoader v3.1 - ETHEREAL DARKROOM REDESIGN (No Lines)
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef } from "react";
 import gsap from "gsap";
 
 const STATIC_DATA_POINTS = [...Array(20)].map(() => ({
@@ -38,6 +38,7 @@ export default function IntroLoader({ onComplete }: { onComplete: () => void }) 
         y: 0,
         opacity: 1,
         filter: "blur(0px)",
+        clearProps: "filter",
         scale: 1,
         duration: 2,
         stagger: { amount: 0.6, from: "center" },
@@ -46,7 +47,7 @@ export default function IntroLoader({ onComplete }: { onComplete: () => void }) 
 
       .fromTo(
         brandRef.current,
-        { letterSpacing: "0.5em" },
+        { letterSpacing: "0.2em" },
         { letterSpacing: "-0.02em", duration: 2.5, ease: "expo.out" },
         "-=1.8"
       )
@@ -92,15 +93,15 @@ export default function IntroLoader({ onComplete }: { onComplete: () => void }) 
       </div>
 
       <div className="relative z-10 flex flex-col items-center w-full max-w-6xl px-4 text-center">
-        <div id="brand-container" className="relative">
-          <h2 className="sub-text text-[10px] tracking-[1.5em] text-white/20 mb-12 uppercase font-black">
+        <div id="brand-container" className="relative w-full">
+          <h2 className="sub-text text-[8px] sm:text-[10px] tracking-[0.8em] sm:tracking-[1.5em] text-white/20 mb-8 sm:mb-12 uppercase font-black whitespace-nowrap">
             System Protocol 2.6
           </h2>
 
           <h1
             ref={brandRef}
             id="brand-name"
-            className="font-bold uppercase leading-none mb-12 flex items-center justify-center text-[12vw] sm:text-7xl md:text-9xl lg:text-[13rem] select-none whitespace-nowrap"
+            className="font-bold uppercase leading-none mb-8 sm:mb-12 flex items-center justify-center text-[14vw] sm:text-7xl md:text-9xl lg:text-[13rem] select-none whitespace-nowrap"
           >
             {"CODIGO".split("").map((char, i) => (
               <span key={i} className="char inline-block">
@@ -110,10 +111,10 @@ export default function IntroLoader({ onComplete }: { onComplete: () => void }) 
           </h1>
 
           <div className="sub-text flex flex-col items-center">
-            <p className="text-xs md:text-sm tracking-[1.8em] text-white/90 uppercase font-black mb-6 mr-[-1.8em]">
+            <p className="text-[10px] md:text-sm tracking-[1em] sm:tracking-[1.8em] text-white/90 uppercase font-black mb-4 sm:mb-6 mr-[-1em] sm:mr-[-1.8em] whitespace-nowrap">
               Street & Culture
             </p>
-            <div className="flex items-center gap-8 text-[8px] md:text-[9px] tracking-[0.5em] text-white/20 uppercase font-medium">
+            <div className="flex items-center gap-4 sm:gap-8 text-[7px] md:text-[9px] tracking-[0.3em] sm:tracking-[0.5em] text-white/20 uppercase font-medium whitespace-nowrap">
               <span>EST. 2026</span>
               <span className="w-1 h-1 bg-white/40 rounded-full" />
               <span>CORE ARCHIVE</span>

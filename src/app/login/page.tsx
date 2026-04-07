@@ -39,7 +39,7 @@ function LoginForm() {
       });
 
       // If redirect is true, execution stops here on success.
-    } catch (err) {
+    } catch {
       setError("An unexpected error occurred.");
       setLoading(false);
     }
