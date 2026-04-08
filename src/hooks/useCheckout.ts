@@ -4,6 +4,8 @@ import { getZipCode } from "@/data/ph-locations";
 import usePostalPH from "use-postal-ph";
 import { createOrder, OrderInput, OrderItemInput } from "@/lib/actions";
 import { CartItem } from "@/store/useCartStore";
+import { useAdminStore } from "@/store/useAdminStore";
+import { useSession } from "next-auth/react";
 
 interface RegionData {
   region_code: string;
@@ -26,11 +28,13 @@ interface BarangayData {
 }
 
 export function useCheckout(cart: CartItem[], total: number, clearCart: () => void) {
+  const { data: session } = useSession();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
 
   const { fetchDataLists } = usePostalPH();
+  const { addOrder } = useAdminStore();
 
   const [regionData, setRegionData] = useState<RegionData[]>([]);
   const [provinceData, setProvinceData] = useState<ProvinceData[]>([]);
@@ -167,6 +171,7 @@ export function useCheckout(cart: CartItem[], total: number, clearCart: () => vo
       }));
 
       const orderData: OrderInput = {
+        userId: session?.user?.id,
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
@@ -183,6 +188,16 @@ export function useCheckout(cart: CartItem[], total: number, clearCart: () => vo
       const result = await createOrder(orderData);
 
       if (result.success) {
+        // Add to local admin store for notification/real-time feel
+        addOrder({
+          id: result.orderId || `#CDG-${Math.floor(1000 + Math.random() * 9000)}`,
+          customer: `${formData.firstName} ${formData.lastName}`,
+          items: cart.reduce((acc, item) => acc + item.quantity, 0),
+          total: total,
+          status: "Processing",
+          time: "Just now"
+        });
+
         // Animation time
         setTimeout(() => {
           setIsProcessing(false);
@@ -191,7 +206,7 @@ export function useCheckout(cart: CartItem[], total: number, clearCart: () => vo
           clearCart();
         }, 4500); // 4.5 seconds for a better animation experience
       } else {
-        alert("Something went wrong. Please try again.");
+        alert(result.error || "Something went wrong. Please try again.");
         setIsProcessing(false);
         setShowAnimation(false);
       }
