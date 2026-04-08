@@ -6,11 +6,26 @@ import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 
 export async function loginAction(formData: FormData) {
+  const username = formData.get("username") as string;
+  const password = formData.get("password") as string;
+
   try {
+    // 1. Determine redirect path based on user role
+    let redirectTo = "/account";
+
+    const adminUsername = process.env.ADMIN_USERNAME || "admin";
+    const user = await db.user.findUnique({
+      where: { email: username }
+    });
+
+    if (username === adminUsername || (user && user.role === "admin")) {
+      redirectTo = "/admin";
+    }
+
     await signIn("credentials", {
-      username: formData.get("username"),
-      password: formData.get("password"),
-      redirectTo: "/admin"
+      username,
+      password,
+      redirectTo
     });
   } catch (error) {
     if (error instanceof AuthError) {
@@ -34,6 +49,7 @@ export type OrderItemInput = {
 };
 
 export type OrderInput = {
+  userId?: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -66,6 +82,7 @@ export async function createOrder(data: OrderInput) {
 
     const order = await db.order.create({
       data: {
+        userId: data.userId,
         firstName: data.firstName,
         lastName: data.lastName,
         email: data.email,
@@ -91,7 +108,8 @@ export async function createOrder(data: OrderInput) {
     revalidatePath("/admin/orders");
     return { success: true, orderId: order.id };
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Failed to create order";
     console.error("Order creation failed:", error);
-    return { success: false, error: "Failed to create order" };
+    return { success: false, error: errorMessage };
   }
 }

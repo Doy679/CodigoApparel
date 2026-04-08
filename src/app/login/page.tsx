@@ -2,20 +2,23 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { signIn } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 function LoginForm() {
-  const [username, setUsername] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   useEffect(() => {
     const errorParam = searchParams.get("error");
     const timer = setTimeout(() => {
       if (errorParam === "CredentialsSignin") {
-        setError("Invalid username or password.");
+        setError("Invalid email/username or password.");
       } else if (errorParam) {
         setError(`Auth error: ${errorParam}`);
       }
@@ -29,16 +32,26 @@ function LoginForm() {
     setError("");
 
     try {
-      // Use NATIVE redirect: true. This is the most stable way.
-      // NextAuth will handle the cookie timing perfectly.
-      await signIn("credentials", {
-        username,
+      const res = await signIn("credentials", {
+        username: identifier,
         password,
-        callbackUrl: "/admin",
-        redirect: true
+        redirect: false
       });
 
-      // If redirect is true, execution stops here on success.
+      if (res?.error) {
+        setError("Invalid credentials.");
+        setLoading(false);
+      } else {
+        const callbackUrl = searchParams.get("callbackUrl");
+        if (callbackUrl) {
+          router.push(callbackUrl);
+        } else if (identifier === "admin") {
+          router.push("/admin");
+        } else {
+          router.push("/account");
+        }
+        router.refresh();
+      }
     } catch {
       setError("An unexpected error occurred.");
       setLoading(false);
@@ -46,44 +59,51 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center font-['Montserrat',sans-serif]">
-      <div className="bg-neutral-900 p-8 w-full max-w-md border border-neutral-800">
-        <div className="text-center mb-8">
-          <h1 className="text-white text-3xl font-black uppercase tracking-widest italic mb-2">
-            CODIGO
-          </h1>
-          <p className="text-neutral-500 text-xs tracking-[0.3em] uppercase">Admin Portal</p>
+    <div className="min-h-screen bg-white flex flex-col pt-32 pb-24 items-center">
+      <div className="w-full max-w-md px-4">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest hover:text-neutral-500 transition-colors mb-12"
+        >
+          <ArrowLeft size={14} />
+          Back to Store
+        </Link>
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-black uppercase tracking-tighter italic mb-4">Decode In</h1>
+          <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest">
+            Enter your credentials to access the collective.
+          </p>
         </div>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/50 text-red-500 text-xs p-3 mb-6 text-center">
+          <div className="bg-red-50 text-red-600 border border-red-100 text-[10px] font-bold uppercase tracking-widest p-4 mb-8 text-center">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2">
-              Username
+            <label className="block text-[10px] font-black text-black uppercase tracking-widest mb-3">
+              Email or Username
             </label>
             <input
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full bg-black border border-neutral-800 text-white px-4 py-3 focus:outline-none focus:border-white transition-colors"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              className="w-full bg-white border border-neutral-200 text-black px-5 py-4 text-xs font-bold focus:outline-none focus:border-black transition-colors"
               required
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-neutral-400 uppercase tracking-widest mb-2">
+            <label className="block text-[10px] font-black text-black uppercase tracking-widest mb-3">
               Password
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-black border border-neutral-800 text-white px-4 py-3 focus:outline-none focus:border-white transition-colors"
+              className="w-full bg-white border border-neutral-200 text-black px-5 py-4 text-xs font-bold focus:outline-none focus:border-black transition-colors"
               required
             />
           </div>
@@ -91,11 +111,20 @@ function LoginForm() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-white text-black font-black uppercase tracking-widest py-4 hover:bg-neutral-200 transition-colors disabled:opacity-50"
+            className="w-full bg-black text-white font-black uppercase tracking-[0.2em] text-[10px] py-5 hover:bg-neutral-800 transition-colors disabled:opacity-50 mt-4"
           >
-            {loading ? "Authenticating..." : "Access Protocol"}
+            {loading ? "Authenticating..." : "Login"}
           </button>
         </form>
+
+        <div className="mt-12 text-center border-t border-neutral-100 pt-8">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400">
+            Don&apos;t have an account?{" "}
+            <Link href="/register" className="text-black hover:underline">
+              Join the Collective
+            </Link>
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -103,7 +132,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-black" />}>
+    <Suspense fallback={<div className="min-h-screen bg-white" />}>
       <LoginForm />
     </Suspense>
   );
