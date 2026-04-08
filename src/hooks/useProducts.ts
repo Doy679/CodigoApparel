@@ -1,19 +1,27 @@
 import { useAdminStore } from "@/store/useAdminStore";
 import { useEffect, useState } from "react";
+import { getProductsAction } from "@/lib/actions";
+import { Product } from "@/data/products";
 
 export function useProducts() {
-  const [mounted, setMounted] = useState(false);
-  const { products } = useAdminStore();
+  const [loading, setLoading] = useState(true);
+  const { products, setProducts } = useAdminStore();
 
   useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
+    async function loadProducts() {
+      // Always fetch fresh data on the client to stay in sync with DB
+      const result = await getProductsAction();
+      if (result.success) {
+        setProducts(result.products as Product[]);
+      }
+      setLoading(false);
+    }
+
+    loadProducts();
+  }, [setProducts]);
 
   return {
-    // Return admin store products if mounted (to avoid hydration mismatch),
-    // otherwise return empty or static data for the initial SSR pass
-    products: mounted ? products : [],
-    loading: !mounted
+    products: products || [],
+    loading
   };
 }

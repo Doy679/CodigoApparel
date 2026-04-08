@@ -6,7 +6,9 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Seeding database...");
 
-  // Delete existing products to avoid duplicates during dev
+  // Delete everything first to avoid foreign key violations
+  await prisma.orderItem.deleteMany();
+  await prisma.order.deleteMany();
   await prisma.product.deleteMany();
 
   for (const product of products) {

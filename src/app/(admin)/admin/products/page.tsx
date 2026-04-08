@@ -1,6 +1,5 @@
 "use client";
 
-import { Product } from "@/data/products";
 import {
   Plus,
   Search,
@@ -10,19 +9,29 @@ import {
   X,
   Save,
   AlertTriangle,
-  ExternalLink
+  ExternalLink,
+  Loader2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useAdminStore } from "@/store/useAdminStore";
 import { toast } from "sonner";
 import Link from "next/link";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { Product } from "@/data/products";
+import {
+  getProductsAction,
+  addProductAction,
+  updateProductAction,
+  deleteProductAction,
+  bulkUpdateStockAction,
+  bulkDeleteProductsAction
+} from "@/lib/actions";
 
 export default function AdminProducts() {
   const [mounted, setMounted] = useState(false);
-  const { products, updateProduct, deleteProduct, addProduct } = useAdminStore();
+  const [loading, setLoading] = useState(true);
+  const { products, setProducts } = useAdminStore();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -36,10 +45,21 @@ export default function AdminProducts() {
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
+  const fetchProducts = useCallback(async () => {
+    setLoading(true);
+    const result = await getProductsAction();
+    if (result.success) {
+      setProducts(result.products as Product[]);
+    } else {
+      toast.error("Failed to sync products with database.");
+    }
+    setLoading(false);
+  }, [setProducts]);
+
   useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
+    setMounted(true);
+    fetchProducts();
+  }, [fetchProducts]);
 
   const handleImageUpload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
@@ -121,17 +141,31 @@ export default function AdminProducts() {
     setSelectedIds((prev) => (prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]));
   };
 
-  const handleBulkOutOfStock = () => {
-    selectedIds.forEach((id) => updateProduct(id, { stock: 0 }));
-    setSelectedIds([]);
-    toast.success(`${selectedIds.length} items marked out of stock.`);
+  const handleBulkOutOfStock = async () => {
+    const toastId = toast.loading(`Marking ${selectedIds.length} items as out of stock...`);
+    const result = await bulkUpdateStockAction(selectedIds, 0);
+
+    if (result.success) {
+      await fetchProducts();
+      setSelectedIds([]);
+      toast.success(`${selectedIds.length} items marked out of stock.`, { id: toastId });
+    } else {
+      toast.error("Bulk update failed.", { id: toastId });
+    }
   };
 
-  const handleBulkDelete = () => {
+  const handleBulkDelete = async () => {
     if (window.confirm(`Are you sure you want to delete ${selectedIds.length} products?`)) {
-      selectedIds.forEach((id) => deleteProduct(id));
-      setSelectedIds([]);
-      toast.success(`${selectedIds.length} items deleted from catalog.`);
+      const toastId = toast.loading(`Deleting ${selectedIds.length} products...`);
+      const result = await bulkDeleteProductsAction(selectedIds);
+
+      if (result.success) {
+        await fetchProducts();
+        setSelectedIds([]);
+        toast.success(`${selectedIds.length} items deleted from catalog.`, { id: toastId });
+      } else {
+        toast.error("Bulk delete failed.", { id: toastId });
+      }
     }
   };
 
@@ -141,19 +175,27 @@ export default function AdminProducts() {
     setEditingStock((prev) => ({ ...prev, [id]: value }));
   };
 
-  const saveStockChange = (id: string) => {
+  const saveStockChange = async (id: string) => {
     const value = parseInt(editingStock[id]);
     if (!isNaN(value)) {
-      updateProduct(id, { stock: value });
-      const newEditingStock = { ...editingStock };
-      delete newEditingStock[id];
-      setEditingStock(newEditingStock);
-      toast.success("Stock Level Updated", {
-        action: {
-          label: "View Live",
-          onClick: () => window.open(`/product/${id}`, "_blank")
-        }
-      });
+      const toastId = toast.loading("Updating stock...");
+      const result = await updateProductAction(id, { stock: value });
+
+      if (result.success) {
+        await fetchProducts();
+        const newEditingStock = { ...editingStock };
+        delete newEditingStock[id];
+        setEditingStock(newEditingStock);
+        toast.success("Stock Level Updated", {
+          id: toastId,
+          action: {
+            label: "View Live",
+            onClick: () => window.open(`/product/${id}`, "_blank")
+          }
+        });
+      } else {
+        toast.error("Failed to update stock", { id: toastId });
+      }
     }
   };
 
@@ -161,30 +203,40 @@ export default function AdminProducts() {
     setEditingPrice((prev) => ({ ...prev, [id]: value }));
   };
 
-  const savePriceChange = (id: string) => {
+  const savePriceChange = async (id: string) => {
     const value = parseFloat(editingPrice[id]);
     if (!isNaN(value)) {
-      updateProduct(id, { price: value });
-      const newEditingPrice = { ...editingPrice };
-      delete newEditingPrice[id];
-      setEditingPrice(newEditingPrice);
-      toast.success(
-        `Price Updated: ₱${value.toLocaleString("en-PH", { minimumFractionDigits: 2 })}`,
-        {
-          action: {
-            label: "View Live",
-            onClick: () => window.open(`/product/${id}`, "_blank")
+      const toastId = toast.loading("Updating price...");
+      const result = await updateProductAction(id, { price: value });
+
+      if (result.success) {
+        await fetchProducts();
+        const newEditingPrice = { ...editingPrice };
+        delete newEditingPrice[id];
+        setEditingPrice(newEditingPrice);
+        toast.success(
+          `Price Updated: ₱${value.toLocaleString("en-PH", { minimumFractionDigits: 2 })}`,
+          {
+            id: toastId,
+            action: {
+              label: "View Live",
+              onClick: () => window.open(`/product/${id}`, "_blank")
+            }
           }
-        }
-      );
+        );
+      } else {
+        toast.error("Failed to update price", { id: toastId });
+      }
     }
   };
 
   const handleAddNewClick = () => {
+    // For database, we'll let Prisma/Supabase handle ID generation or use a meaningful slug
     const numericIds = Array.isArray(products)
       ? products.map((p) => parseInt(p.id)).filter((id) => !isNaN(id))
       : [];
     const nextId = (Math.max(...numericIds, 0) + 1).toString();
+
     setSelectedProduct({
       id: nextId,
       name: "",
@@ -196,7 +248,7 @@ export default function AdminProducts() {
       details: ["Premium Fabric", "Signature oversized fit"],
       stock: 0,
       sizes: ["S", "M", "L", "XL"]
-    });
+    } as Product);
     setIsEditMode(true);
     setIsAddingNew(true);
   };
@@ -218,31 +270,53 @@ export default function AdminProducts() {
     setIsDeleteModalOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (productToDelete) {
-      deleteProduct(productToDelete.id);
-      setIsDeleteModalOpen(false);
-      setProductToDelete(null);
+      const toastId = toast.loading(`Deleting ${productToDelete.name}...`);
+      const result = await deleteProductAction(productToDelete.id);
+
+      if (result.success) {
+        await fetchProducts();
+        setIsDeleteModalOpen(false);
+        setProductToDelete(null);
+        toast.success("Product deleted", { id: toastId });
+      } else {
+        toast.error("Delete failed", { id: toastId });
+      }
     }
   };
 
-  const handleSaveProduct = (e: React.FormEvent) => {
+  const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (selectedProduct) {
+      const toastId = toast.loading(isAddingNew ? "Creating product..." : "Saving changes...");
+
       if (isAddingNew) {
-        addProduct(selectedProduct);
-        toast.success(`Product "${selectedProduct.name}" added to catalog.`);
+        const result = await addProductAction(selectedProduct);
+        if (result.success) {
+          await fetchProducts();
+          toast.success(`Product "${selectedProduct.name}" added to catalog.`, { id: toastId });
+          setSelectedProduct(null);
+          setIsAddingNew(false);
+        } else {
+          toast.error("Failed to create product", { id: toastId });
+        }
       } else {
-        updateProduct(selectedProduct.id, selectedProduct);
-        toast.success(`Product details updated.`, {
-          action: {
-            label: "View Live",
-            onClick: () => window.open(`/product/${selectedProduct.id}`, "_blank")
-          }
-        });
+        const result = await updateProductAction(selectedProduct.id, selectedProduct);
+        if (result.success) {
+          await fetchProducts();
+          toast.success(`Product details updated.`, {
+            id: toastId,
+            action: {
+              label: "View Live",
+              onClick: () => window.open(`/product/${selectedProduct.id}`, "_blank")
+            }
+          });
+          setSelectedProduct(null);
+        } else {
+          toast.error("Failed to update product", { id: toastId });
+        }
       }
-      setSelectedProduct(null);
-      setIsAddingNew(false);
     }
   };
 
@@ -254,15 +328,18 @@ export default function AdminProducts() {
             Catalog
           </h2>
           <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
-            Manage your products and collections
+            Manage your products and collections (Synced with Live Database)
           </p>
         </div>
-        <button
-          onClick={handleAddNewClick}
-          className="bg-black text-white px-8 py-4 text-[10px] font-black uppercase tracking-[0.3em] hover:bg-neutral-800 transition-all flex items-center gap-3 w-fit"
-        >
-          <Plus size={16} /> Add New Product
-        </button>
+        <div className="flex items-center gap-4">
+          {loading && <Loader2 className="animate-spin text-neutral-400" size={20} />}
+          <button
+            onClick={handleAddNewClick}
+            className="bg-black text-white px-8 py-4 text-[10px] font-black uppercase tracking-[0.3em] hover:bg-neutral-800 transition-all flex items-center gap-3 w-fit"
+          >
+            <Plus size={16} /> Add New Product
+          </button>
+        </div>
       </div>
 
       <div className="bg-white border border-neutral-100 overflow-hidden">
