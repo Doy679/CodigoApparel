@@ -4,6 +4,7 @@ import { MessageCircle, X, Send, Package, RefreshCw, HelpCircle } from "lucide-r
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAdminStore } from "@/store/useAdminStore";
+import { useSession } from "next-auth/react";
 
 interface Message {
   id: string;
@@ -69,6 +70,7 @@ const generateHumanizedReply = (input: string) => {
 };
 
 export default function ChatSupport() {
+  const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
@@ -89,6 +91,23 @@ export default function ChatSupport() {
     }
     return { name: "", email: "", contact: "" };
   });
+
+  useEffect(() => {
+    if (session?.user && !isSigned) {
+      const newUserInfo = {
+        name: session.user.name || "Customer",
+        email: session.user.email || "",
+        contact: "Registered User"
+      };
+
+      // Update state in next tick to avoid cascading render warning
+      setTimeout(() => {
+        setUserInfo(newUserInfo);
+        setIsSigned(true);
+        localStorage.setItem("cdg-user-info", JSON.stringify(newUserInfo));
+      }, 0);
+    }
+  }, [session, isSigned]);
 
   const { chats, addChatMessage } = useAdminStore();
 

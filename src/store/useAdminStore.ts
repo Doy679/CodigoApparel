@@ -30,11 +30,21 @@ interface Order {
   time: string;
 }
 
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  time: string;
+  type: "order" | "stock" | "chat" | "info";
+  read: boolean;
+}
+
 interface AdminState {
   products: Product[];
   orders: Order[];
   communityImages: string[];
   chats: Conversation[];
+  notifications: Notification[];
 
   // Product Actions
   setProducts: (products: Product[]) => void;
@@ -56,6 +66,14 @@ interface AdminState {
   updateChat: (chatId: string, updates: Partial<Conversation>) => void;
   deleteChat: (chatId: string) => void;
   createChat: (customerName: string) => void;
+
+  // Order Actions
+  addOrder: (order: Order) => void;
+
+  // Notification Actions
+  addNotification: (notification: Omit<Notification, "id" | "read">) => void;
+  markAsRead: (id: string) => void;
+  clearNotifications: () => void;
 
   // Clear State
   reset: () => void;
@@ -103,13 +121,42 @@ export const useAdminStore = create<AdminState>()(
       ],
       communityImages: initialCommunityImages,
       chats: [],
+      notifications: [
+        {
+          id: "1",
+          title: "Low Stock Alert",
+          message: "Limited Edition Hoodie is down to 2 units.",
+          time: "5 mins ago",
+          type: "stock",
+          read: false
+        },
+        {
+          id: "2",
+          title: "New Customer Concern",
+          message: "Miguel R. started a new chat.",
+          time: "15 mins ago",
+          type: "chat",
+          read: false
+        }
+      ],
 
       setProducts: (products) => set({ products }),
 
       addProduct: (product) =>
-        set((state) => ({
-          products: [product, ...state.products]
-        })),
+        set((state) => {
+          const newNotification: Notification = {
+            id: Math.random().toString(36).substr(2, 9),
+            title: "New Product Added",
+            message: `${product.name} has been added to the catalog.`,
+            time: "Just now",
+            type: "info",
+            read: false
+          };
+          return {
+            products: [product, ...state.products],
+            notifications: [newNotification, ...state.notifications]
+          };
+        }),
 
       updateProduct: (id, updates) =>
         set((state) => ({
@@ -134,25 +181,45 @@ export const useAdminStore = create<AdminState>()(
       addChatMessage: (chatId, message, customerInfo) =>
         set((state) => {
           const existingChat = state.chats.find((c) => c.id === chatId);
+          const newNotifications = [...state.notifications];
+
+          // Trigger a notification if the sender is user OR if it's a new chat session starting
+          if (message.sender === "user" || (!existingChat && message.sender === "bot")) {
+            const isNewChat = !existingChat;
+            newNotifications.unshift({
+              id: Math.random().toString(36).substr(2, 9),
+              title: isNewChat ? "New Customer Connected" : "New Customer Concern",
+              message: isNewChat
+                ? `${customerInfo?.name || "A user"} started a session.`
+                : `${customerInfo?.name || "A user"} sent a message: "${message.text.substring(0, 30)}..."`,
+              time: "Just now",
+              type: "chat",
+              read: false
+            });
+          }
+
           if (existingChat) {
             // Prevent duplicate messages by ID
             if (existingChat.messages.some((m) => m.id === message.id)) {
               return state;
             }
             return {
+              notifications: newNotifications,
               chats: state.chats.map((c) =>
                 c.id === chatId
                   ? {
                       ...c,
                       lastMessage: message.text,
                       lastUpdate: "Just now",
-                      messages: [...c.messages, message]
+                      messages: [...c.messages, message],
+                      status: "open" // Ensure it becomes open if a user replies
                     }
                   : c
               )
             };
           } else {
             return {
+              notifications: newNotifications,
               chats: [
                 {
                   id: chatId,
@@ -210,6 +277,41 @@ export const useAdminStore = create<AdminState>()(
           };
         }),
 
+      addOrder: (order) =>
+        set((state) => {
+          const newNotification: Notification = {
+            id: Math.random().toString(36).substr(2, 9),
+            title: "New Order Placed",
+            message: `${order.customer} placed an order for ${order.items} item(s) - ₱${order.total.toLocaleString()}.`,
+            time: "Just now",
+            type: "order",
+            read: false
+          };
+          return {
+            orders: [order, ...state.orders],
+            notifications: [newNotification, ...state.notifications]
+          };
+        }),
+
+      addNotification: (notification) =>
+        set((state) => ({
+          notifications: [
+            {
+              ...notification,
+              id: Math.random().toString(36).substr(2, 9),
+              read: false
+            },
+            ...state.notifications
+          ]
+        })),
+
+      markAsRead: (id) =>
+        set((state) => ({
+          notifications: state.notifications.map((n) => (n.id === id ? { ...n, read: true } : n))
+        })),
+
+      clearNotifications: () => set({ notifications: [] }),
+
       reset: () =>
         set({
           products: initialProducts,
@@ -240,7 +342,25 @@ export const useAdminStore = create<AdminState>()(
             }
           ],
           communityImages: initialCommunityImages,
-          chats: []
+          chats: [],
+          notifications: [
+            {
+              id: "1",
+              title: "Low Stock Alert",
+              message: "Limited Edition Hoodie is down to 2 units.",
+              time: "5 mins ago",
+              type: "stock",
+              read: false
+            },
+            {
+              id: "2",
+              title: "New Customer Concern",
+              message: "Miguel R. started a new chat.",
+              time: "15 mins ago",
+              type: "chat",
+              read: false
+            }
+          ]
         }),
 
       getStats: () => {
