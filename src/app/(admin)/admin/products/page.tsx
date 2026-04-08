@@ -42,44 +42,31 @@ export default function AdminProducts() {
   }, []);
 
   const handleImageUpload = async (file: File) => {
-    if (!isSupabaseConfigured) {
-      toast.error(
-        "Image uploads are disabled. Please configure Supabase URL and Key in your .env file."
-      );
-      return;
-    }
-
     if (!file.type.startsWith("image/")) {
       toast.error("Please upload an image file.");
-      return;
-    }
-
-    if (!supabase) {
-      toast.error("Cloud storage is not configured properly.");
       return;
     }
 
     const toastId = toast.loading("Uploading image...");
 
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
+      const formData = new FormData();
+      formData.append("file", file);
 
-      const { error } = await supabase.storage.from("products").upload(fileName, file, {
-        cacheControl: "3600",
-        upsert: false
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData
       });
 
-      if (error) {
-        throw error;
+      if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText);
       }
 
-      const {
-        data: { publicUrl }
-      } = supabase.storage.from("products").getPublicUrl(fileName);
+      const data = await res.json();
 
       if (selectedProduct) {
-        setSelectedProduct({ ...selectedProduct, image: publicUrl });
+        setSelectedProduct({ ...selectedProduct, image: data.url });
         toast.dismiss(toastId);
         toast.success("Image uploaded successfully!");
       }
