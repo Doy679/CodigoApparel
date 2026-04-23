@@ -49,7 +49,7 @@ export type OrderItemInput = {
   size?: string;
 };
 
-export type OrderInput = {
+export interface OrderInput {
   userId?: string;
   firstName: string;
   lastName: string;
@@ -61,8 +61,9 @@ export type OrderInput = {
   postalCode: string;
   streetAddress: string;
   total: number;
+  useCredits?: number;
   items: OrderItemInput[];
-};
+}
 
 export async function createOrder(data: OrderInput) {
   try {
@@ -106,12 +107,42 @@ export async function createOrder(data: OrderInput) {
       }
     });
 
+    // Award 5% of order total as Culture Credits if user is logged in
+    if (data.userId) {
+      const earnedCredits = Math.floor(data.total * 0.05);
+      const creditUpdate: { credits: { increment?: number; decrement?: number } } = {
+        credits: { increment: earnedCredits }
+      };
+
+      if (data.useCredits && data.useCredits > 0) {
+        creditUpdate.credits.decrement = data.useCredits;
+      }
+
+      await db.user.update({
+        where: { id: data.userId },
+        data: creditUpdate
+      });
+    }
+
     revalidatePath("/admin/orders");
     return { success: true, orderId: order.id };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Failed to create order";
     console.error("Order creation failed:", error);
     return { success: false, error: errorMessage };
+  }
+}
+
+export async function getUserCreditsAction(userId: string) {
+  try {
+    const user = await db.user.findUnique({
+      where: { id: userId },
+      select: { credits: true }
+    });
+    return { success: true, credits: user?.credits || 0 };
+  } catch (error) {
+    console.error("Failed to fetch user credits:", error);
+    return { success: false, credits: 0, error: "Failed to fetch credits" };
   }
 }
 

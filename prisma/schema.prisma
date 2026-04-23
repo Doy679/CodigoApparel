@@ -75,6 +75,7 @@ model User {
   image         String?
   password      String?
   role          String    @default("user")
+  credits       Int       @default(0)
   accounts      Account[]
   sessions      Session[]
   orders        Order[]   @relation("UserOrders")

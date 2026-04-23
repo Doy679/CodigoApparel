@@ -6,10 +6,13 @@ export interface Product {
   category: string;
   hoverImage?: string;
   isNew?: boolean;
+  isPremium?: boolean;
   description: string;
   details: string[];
   additionalImages?: string[];
+  videoUrl?: string;
   stock: number;
+  stockPerSize?: Record<string, number>;
   sizes?: string[];
 }
 
@@ -22,6 +25,7 @@ export const products: Product[] = [
     image: "/images/products/C-CB-01.jpg",
     hoverImage: "/images/products/C-CB-01.jpg",
     isNew: true,
+    isPremium: true,
     description:
       "Premium corduroy texture meets the signature black-on-black code, meticulously stitched.",
     details: [
@@ -90,6 +94,7 @@ export const products: Product[] = [
       "/images/products/C-AW-01-detail-3.jpg"
     ],
     stock: 15,
+    stockPerSize: { S: 1, M: 2, L: 3, XL: 4, "2XL": 5, "3XL": 0 },
     sizes: ["S", "M", "L", "XL", "2XL", "3XL"]
   }
 ];
