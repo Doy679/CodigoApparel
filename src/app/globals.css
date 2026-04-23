@@ -12,6 +12,17 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html.dark {
+  filter: invert(1) hue-rotate(180deg);
+  background: black;
+}
+
+html.dark img,
+html.dark video,
+html.dark [data-theme-ignore] {
+  filter: invert(1) hue-rotate(180deg);
+}
+
 @layer base {
   body {
     background: var(--background);

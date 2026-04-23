@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Search, ShoppingBag, User, Menu, X } from "lucide-react";
+import { Search, ShoppingBag, User, Menu, X, Moon, Sun } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useCartCount } from "@/store/useCartStore";
 import SearchOverlay from "./SearchOverlay";
@@ -12,18 +12,39 @@ export default function Header() {
   const [isMounted, setIsMounted] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDark, setIsDark] = useState(false);
   const cartCount = useCartCount();
 
   useEffect(() => {
-    if (!isMounted) {
-      setTimeout(() => setIsMounted(true), 0);
-    }
+    const timer = setTimeout(() => {
+      setIsMounted(true);
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme === "dark") {
+        setIsDark(true);
+        document.documentElement.classList.add("dark");
+      }
+    }, 0);
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 0);
     };
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [isMounted]);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      clearTimeout(timer);
+    };
+  }, []);
+
+  const toggleTheme = () => {
+    if (isDark) {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+      setIsDark(false);
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+      setIsDark(true);
+    }
+  };
 
   // Prevent scroll when mobile menu is open
   useEffect(() => {
@@ -37,6 +58,7 @@ export default function Header() {
   const navLinks = [
     { href: "/store", label: "Store" },
     { href: "/collections", label: "Collections" },
+    { href: "/lookbook", label: "Lookbook" },
     { href: "/about", label: "Manifesto" }
   ];
 
@@ -80,7 +102,15 @@ export default function Header() {
               </Link>
             </div>
 
-            <div className="flex items-center gap-4 md:gap-6">
+            <div className="flex items-center gap-6 md:gap-8">
+              <button
+                onClick={toggleTheme}
+                className="hover:text-neutral-400 transition-colors"
+                title={isDark ? "Light Mode" : "Dark Mode"}
+              >
+                {isDark ? <Sun size={18} /> : <Moon size={18} />}
+              </button>
+
               <button
                 onClick={() => setIsSearchOpen(true)}
                 className="hover:text-neutral-400 transition-colors"

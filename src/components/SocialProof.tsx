@@ -5,16 +5,35 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAdminStore } from "@/store/useAdminStore";
+import { toast } from "sonner";
 
 export default function SocialProof() {
   const [mounted, setMounted] = useState(false);
-  const { communityImages } = useAdminStore();
+  const { communityImages, addCommunityImage } = useAdminStore();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setMounted(true), 0);
     return () => clearTimeout(timer);
   }, []);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = event.target?.result as string;
+      addCommunityImage(result);
+      toast.success("Thanks for joining the collective! Your fit has been added.");
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleNext = (e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -139,17 +158,34 @@ export default function SocialProof() {
       </AnimatePresence>
 
       <div className="container mx-auto px-4 md:px-8 mt-16 text-center">
-        <p className="text-sm font-medium text-neutral-600 tracking-tight mb-8">
-          Join the collective. Tag your fit to be featured.
+        <p className="text-sm font-black uppercase tracking-widest text-neutral-400 mb-8">
+          Join the collective. Upload your fit to be featured.
         </p>
-        <div className="flex items-center justify-center gap-8">
-          <div className="flex items-center gap-2 group cursor-pointer hover:opacity-60 transition-opacity">
-            <span className="text-xs font-black uppercase tracking-[0.2em]">1.2K+ CUSTOMERS</span>
-          </div>
-          <div className="flex items-center gap-2 group cursor-pointer hover:opacity-60 transition-opacity border-l border-neutral-200 pl-8">
-            <span className="text-xs font-black uppercase tracking-[0.2em]">
-              WORLDWIDE SHIPPING
-            </span>
+
+        <div className="flex flex-col items-center gap-12">
+          <button
+            onClick={() => document.getElementById("user-community-upload")?.click()}
+            className="bg-black text-white px-12 py-5 text-xs font-black uppercase tracking-[0.3em] hover:bg-neutral-800 transition-all shadow-xl hover:scale-105"
+          >
+            Upload Your Fit
+          </button>
+          <input
+            id="user-community-upload"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleImageUpload}
+          />
+
+          <div className="flex items-center justify-center gap-8 w-full border-t border-neutral-100 pt-12">
+            <div className="flex items-center gap-2 group cursor-pointer hover:opacity-60 transition-opacity">
+              <span className="text-xs font-black uppercase tracking-[0.2em]">1.2K+ CUSTOMERS</span>
+            </div>
+            <div className="flex items-center gap-2 group cursor-pointer hover:opacity-60 transition-opacity border-l border-neutral-200 pl-8">
+              <span className="text-xs font-black uppercase tracking-[0.2em]">
+                WORLDWIDE SHIPPING
+              </span>
+            </div>
           </div>
         </div>
       </div>
