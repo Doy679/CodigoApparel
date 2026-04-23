@@ -26,7 +26,10 @@ export default function CheckoutPage() {
     provinceData,
     cityData,
     barangayData,
-    handleSubmit
+    handleSubmit,
+    useCredits,
+    setUseCredits,
+    maxCredits
   } = useCheckout(selectedItems, cartTotal, clearSelectedItems);
 
   if (showAnimation) {
@@ -318,10 +321,45 @@ export default function CheckoutPage() {
                 <span>Shipping</span>
                 <span>FREE</span>
               </div>
+
+              {maxCredits > 0 && (
+                <div className="pt-4 space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-neutral-400">
+                      Culture Credits Available: {maxCredits}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setUseCredits(
+                          useCredits > 0 ? 0 : Math.min(maxCredits, Math.floor(cartTotal))
+                        )
+                      }
+                      className="text-[10px] font-black uppercase tracking-widest underline underline-offset-4"
+                    >
+                      {useCredits > 0 ? "Remove" : "Apply Max"}
+                    </button>
+                  </div>
+                  {useCredits > 0 && (
+                    <div className="flex justify-between text-xs font-black uppercase tracking-widest text-black">
+                      <span>Credits Applied</span>
+                      <span>-₱{useCredits.toLocaleString()}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="flex justify-between text-lg font-black uppercase italic tracking-tighter border-t border-neutral-200 pt-4">
                 <span>Total</span>
-                <span>₱{cartTotal.toLocaleString("en-PH", { minimumFractionDigits: 2 })}</span>
+                <span>
+                  ₱{(cartTotal - useCredits).toLocaleString("en-PH", { minimumFractionDigits: 2 })}
+                </span>
               </div>
+
+              <p className="text-[8px] font-bold text-neutral-400 uppercase tracking-widest text-right">
+                You will earn ₱{Math.floor((cartTotal - useCredits) * 0.05).toLocaleString()}{" "}
+                Culture Credits
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-8">

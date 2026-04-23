@@ -56,6 +56,20 @@ export function useCheckout(cart: CartItem[], total: number, clearCart: () => vo
     postalCode: ""
   });
 
+  const [useCredits, setUseCredits] = useState(0);
+  const [maxCredits, setMaxCredits] = useState(0);
+
+  // Load user credits if logged in
+  useEffect(() => {
+    if (session?.user?.id) {
+      import("@/lib/actions").then(({ getUserCreditsAction }) => {
+        getUserCreditsAction(session.user!.id!).then((res) => {
+          if (res.success) setMaxCredits(res.credits);
+        });
+      });
+    }
+  }, [session]);
+
   // Load regions on mount
   useEffect(() => {
     regions().then((res: RegionData[]) => setRegionData(res));
@@ -181,7 +195,8 @@ export function useCheckout(cart: CartItem[], total: number, clearCart: () => vo
         barangay: formData.barangay,
         postalCode: formData.postalCode,
         streetAddress: formData.streetAddress,
-        total: total,
+        total: total - useCredits,
+        useCredits: useCredits,
         items: orderItems
       };
 
@@ -231,6 +246,9 @@ export function useCheckout(cart: CartItem[], total: number, clearCart: () => vo
     handleRegionChange,
     handleProvinceChange,
     handleCityChange,
-    handleSubmit
+    handleSubmit,
+    useCredits,
+    setUseCredits,
+    maxCredits
   };
 }

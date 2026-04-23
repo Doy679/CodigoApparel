@@ -1,6 +1,7 @@
 import { auth, signOut } from "@/auth";
 import { redirect } from "next/navigation";
-import { User, LogOut, ShoppingBag, Package } from "lucide-react";
+import Link from "next/link";
+import { User, LogOut, ShoppingBag, Package, LayoutDashboard } from "lucide-react";
 import { db } from "@/lib/db";
 
 export default async function AccountPage() {
@@ -22,6 +23,11 @@ export default async function AccountPage() {
     }
   });
 
+  const user = await db.user.findUnique({
+    where: { id: session.user.id },
+    select: { credits: true }
+  });
+
   return (
     <div className="min-h-screen bg-white pt-32 pb-24">
       <div className="container mx-auto px-4 md:px-8 max-w-4xl">
@@ -36,17 +42,29 @@ export default async function AccountPage() {
             </p>
           </div>
 
-          <form
-            action={async () => {
-              "use server";
-              await signOut();
-            }}
-          >
-            <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-neutral-400 hover:text-black transition-colors">
-              <LogOut size={14} />
-              Sign Out
-            </button>
-          </form>
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-6 md:gap-8">
+            {session.user.role === "admin" && (
+              <Link
+                href="/admin"
+                className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest hover:text-neutral-500 transition-colors"
+              >
+                <LayoutDashboard size={14} />
+                Dashboard
+              </Link>
+            )}
+
+            <form
+              action={async () => {
+                "use server";
+                await signOut();
+              }}
+            >
+              <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-neutral-400 hover:text-black transition-colors">
+                <LogOut size={14} />
+                Sign Out
+              </button>
+            </form>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -139,6 +157,23 @@ export default async function AccountPage() {
                     Email
                   </p>
                   <p className="text-xs font-black tracking-tight">{session.user.email}</p>
+                </div>
+
+                <div className="pt-6 border-t border-neutral-50">
+                  <p className="text-[8px] font-bold uppercase tracking-widest text-neutral-400 mb-1">
+                    Culture Credits
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-2xl font-black uppercase tracking-tight italic">
+                      ₱{(user?.credits || 0).toLocaleString()}
+                    </p>
+                    <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-[10px] font-black italic">
+                      C
+                    </div>
+                  </div>
+                  <p className="text-[7px] font-medium text-neutral-400 uppercase tracking-widest mt-2">
+                    Earn 5% credits on every order.
+                  </p>
                 </div>
               </div>
             </div>
