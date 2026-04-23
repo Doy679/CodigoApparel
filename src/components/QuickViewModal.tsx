@@ -71,7 +71,18 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
             </button>
 
             <div className="relative w-full md:w-1/2 aspect-square md:aspect-auto">
-              <Image src={product.image} alt={product.name} fill className="object-cover" />
+              {product.videoUrl ? (
+                <video
+                  src={product.videoUrl}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="object-cover w-full h-full"
+                />
+              ) : (
+                <Image src={product.image} alt={product.name} fill className="object-cover" />
+              )}
             </div>
 
             <div className="w-full md:w-1/2 p-8 md:p-12 overflow-y-auto flex flex-col">
@@ -109,19 +120,29 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
                       Select Size
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {product.sizes.map((size) => (
-                        <button
-                          key={size}
-                          onClick={() => setSelectedSize(size)}
-                          className={`w-12 h-12 flex items-center justify-center text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer border-2 ${
-                            selectedSize === size
-                              ? "bg-black text-white border-black"
-                              : "bg-white text-black border-neutral-100 hover:border-black"
-                          }`}
-                        >
-                          {size}
-                        </button>
-                      ))}
+                      {product.sizes.map((size) => {
+                        const isOutOfStock =
+                          product.stockPerSize && product.stockPerSize[size] === 0;
+                        return (
+                          <button
+                            key={size}
+                            onClick={() => {
+                              if (isOutOfStock) return;
+                              setSelectedSize(size);
+                            }}
+                            disabled={isOutOfStock}
+                            className={`w-12 h-12 flex items-center justify-center text-[10px] font-black uppercase tracking-widest transition-all border-2 ${
+                              isOutOfStock
+                                ? "border-neutral-100 text-neutral-300 bg-neutral-50 cursor-not-allowed line-through"
+                                : selectedSize === size
+                                  ? "bg-black text-white border-black cursor-pointer"
+                                  : "bg-white text-black border-neutral-100 hover:border-black cursor-pointer"
+                            }`}
+                          >
+                            {size}
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}

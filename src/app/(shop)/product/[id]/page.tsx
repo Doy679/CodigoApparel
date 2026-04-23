@@ -5,10 +5,13 @@ import Image from "next/image";
 import { ShieldCheck, Truck, RefreshCw, Zap, ShoppingBag } from "lucide-react";
 import ProductGrid from "@/components/ProductGrid";
 import BackButton from "@/components/BackButton";
+import SizeGuideModal from "@/components/SizeGuideModal";
 import { useState, use } from "react";
 import { useCartStore } from "@/store/useCartStore";
 import { useProducts } from "@/hooks/useProducts";
 import { toast } from "sonner";
+import { useEffect as useGsapEffect, useRef } from "react";
+import gsap from "gsap";
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -18,7 +21,47 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const [selectedSize, setSelectedSize] = useState<string | undefined>(undefined);
   const [activeImage, setActiveImage] = useState<string | null>(null);
   const [showSizeError, setShowSizeError] = useState(false);
+  const [isSizeGuideOpen, setIsSizeGuideOpen] = useState(false);
   const { addToCart, selectOnlyItem } = useCartStore();
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+
+  useGsapEffect(() => {
+    if (product?.isPremium && imageContainerRef.current) {
+      const container = imageContainerRef.current;
+
+      const handleMouseMove = (e: MouseEvent) => {
+        const { left, top, width, height } = container.getBoundingClientRect();
+        const x = (e.clientX - left) / width - 0.5;
+        const y = (e.clientY - top) / height - 0.5;
+
+        gsap.to(container, {
+          rotateY: x * 20,
+          rotateX: -y * 20,
+          scale: 1.05,
+          duration: 0.5,
+          ease: "power2.out"
+        });
+      };
+
+      const handleMouseLeave = () => {
+        gsap.to(container, {
+          rotateY: 0,
+          rotateX: 0,
+          scale: 1,
+          duration: 0.8,
+          ease: "elastic.out(1, 0.5)"
+        });
+      };
+
+      container.addEventListener("mousemove", handleMouseMove);
+      container.addEventListener("mouseleave", handleMouseLeave);
+
+      return () => {
+        container.removeEventListener("mousemove", handleMouseMove);
+        container.removeEventListener("mouseleave", handleMouseLeave);
+      };
+    }
+  }, [product]);
 
   if (loading) {
     return <div className="min-h-screen bg-white pt-24 text-center">Loading...</div>;
@@ -28,8 +71,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     notFound();
   }
 
-  const allImages = [product.image, ...(product.additionalImages || [])];
-  const currentImage = activeImage || product.image;
+  const allMedia = [product.image, ...(product.additionalImages || [])];
+  if (product.videoUrl) allMedia.push(product.videoUrl);
+  const currentMedia = activeImage || product.image;
 
   const handleAddToCart = () => {
     if (!selectedSize && product.sizes && product.sizes.length > 0) {
@@ -60,35 +104,58 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           {/* Product Images - Sticky on Desktop */}
-          <div className="space-y-6 lg:sticky lg:top-32 h-fit">
-            <div className="relative aspect-[3/4] bg-neutral-100 overflow-hidden">
-              <Image
-                src={currentImage}
-                alt={product.name}
-                fill
-                className="object-cover transition-opacity duration-500"
-                priority
-              />
+          <div className="space-y-6 lg:sticky lg:top-32 h-fit" style={{ perspective: "1000px" }}>
+            <div
+              ref={imageContainerRef}
+              className="relative aspect-[3/4] bg-neutral-100 overflow-hidden shadow-2xl transition-shadow"
+            >
+              {currentMedia.endsWith(".mp4") ? (
+                <video
+                  src={currentMedia}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="object-cover w-full h-full"
+                />
+              ) : (
+                <Image
+                  src={currentMedia}
+                  alt={product.name}
+                  fill
+                  className="object-cover transition-opacity duration-500"
+                  priority
+                />
+              )}
             </div>
 
-            {allImages.length > 1 && (
+            {allMedia.length > 1 && (
               <div className="grid grid-cols-5 gap-4">
-                {allImages.map((img, idx) => (
+                {allMedia.map((media, idx) => (
                   <button
                     key={idx}
-                    onClick={() => setActiveImage(img)}
+                    onClick={() => setActiveImage(media)}
                     className={`relative aspect-[3/4] bg-neutral-100 overflow-hidden border-2 transition-all cursor-pointer ${
-                      currentImage === img
+                      currentMedia === media
                         ? "border-black"
                         : "border-transparent opacity-60 hover:opacity-100"
                     }`}
                   >
-                    <Image
-                      src={img}
-                      alt={`${product.name} detail ${idx}`}
-                      fill
-                      className="object-cover"
-                    />
+                    {media.endsWith(".mp4") ? (
+                      <video
+                        src={media}
+                        muted
+                        playsInline
+                        className="object-cover w-full h-full opacity-70"
+                      />
+                    ) : (
+                      <Image
+                        src={media}
+                        alt={`${product.name} detail ${idx}`}
+                        fill
+                        className="object-cover"
+                      />
+                    )}
                   </button>
                 ))}
               </div>
@@ -138,22 +205,29 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                   )}
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  {(product.sizes || ["S", "M", "L", "XL", "2XL", "3XL"]).map((size) => (
-                    <button
-                      key={size}
-                      onClick={() => {
-                        setSelectedSize(size);
-                        setShowSizeError(false);
-                      }}
-                      className={`w-12 h-12 border-2 flex items-center justify-center text-xs font-black transition-all cursor-pointer ${
-                        selectedSize === size
-                          ? "border-black bg-black text-white"
-                          : "border-neutral-100 hover:border-black"
-                      }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
+                  {(product.sizes || ["S", "M", "L", "XL", "2XL", "3XL"]).map((size) => {
+                    const isOutOfStock = product.stockPerSize && product.stockPerSize[size] === 0;
+                    return (
+                      <button
+                        key={size}
+                        onClick={() => {
+                          if (isOutOfStock) return;
+                          setSelectedSize(size);
+                          setShowSizeError(false);
+                        }}
+                        disabled={isOutOfStock}
+                        className={`w-12 h-12 border-2 flex items-center justify-center text-xs font-black transition-all ${
+                          isOutOfStock
+                            ? "border-neutral-100 text-neutral-300 bg-neutral-50 cursor-not-allowed line-through"
+                            : selectedSize === size
+                              ? "border-black bg-black text-white cursor-pointer"
+                              : "border-neutral-100 hover:border-black cursor-pointer"
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -198,6 +272,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
       </div>
 
       <ProductGrid title="You might also like" />
+      <SizeGuideModal isOpen={isSizeGuideOpen} onClose={() => setIsSizeGuideOpen(false)} />
     </div>
   );
 }
