@@ -80,6 +80,8 @@ export const useCartStore = create<CartState>()(
 
       updateItemSize: (productId: string, oldSize: string | undefined, newSize: string) =>
         set((state) => {
+          if (areSizesEqual(oldSize, newSize)) return state;
+
           const existingWithNewSizeIndex = state.cart.findIndex(
             (item) => item.id === productId && areSizesEqual(item.selectedSize, newSize)
           );
