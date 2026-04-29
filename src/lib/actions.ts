@@ -4,7 +4,9 @@ import { signIn } from "@/auth";
 import { AuthError } from "next-auth";
 import { db } from "@/lib/db";
 import { revalidatePath } from "next/cache";
-import { Product } from "@/data/products";
+import { products as fallbackProducts, type Product } from "@/data/products";
+
+const isProduction = process.env.NODE_ENV === "production";
 
 export async function loginAction(formData: FormData) {
   const username = formData.get("username") as string;
@@ -14,12 +16,14 @@ export async function loginAction(formData: FormData) {
     // 1. Determine redirect path based on user role
     let redirectTo = "/account";
 
-    const adminUsername = process.env.ADMIN_USERNAME || "admin";
-    const user = await db.user.findUnique({
-      where: { email: username }
-    });
+    const adminUsername = process.env.ADMIN_USERNAME || (isProduction ? undefined : "admin");
+    const user = process.env.DATABASE_URL
+      ? await db.user.findUnique({
+          where: { email: username }
+        })
+      : null;
 
-    if (username === adminUsername || (user && user.role === "admin")) {
+    if ((adminUsername && username === adminUsername) || (user && user.role === "admin")) {
       redirectTo = "/admin";
     }
 
@@ -110,17 +114,11 @@ export async function createOrder(data: OrderInput) {
     // Award 5% of order total as Culture Credits if user is logged in
     if (data.userId) {
       const earnedCredits = Math.floor(data.total * 0.05);
-      const creditUpdate: { credits: { increment?: number; decrement?: number } } = {
-        credits: { increment: earnedCredits }
-      };
-
-      if (data.useCredits && data.useCredits > 0) {
-        creditUpdate.credits.decrement = data.useCredits;
-      }
+      const netCredits = earnedCredits - (data.useCredits || 0);
 
       await db.user.update({
         where: { id: data.userId },
-        data: creditUpdate
+        data: { credits: { increment: netCredits } }
       });
     }
 
@@ -149,14 +147,24 @@ export async function getUserCreditsAction(userId: string) {
 // Product Actions
 
 export async function getProductsAction() {
+  if (!process.env.DATABASE_URL) {
+    return { success: true, products: fallbackProducts };
+  }
+
   try {
-    const products = await db.product.findMany({
-      orderBy: { createdAt: "desc" }
-    });
-    return { success: true, products };
+    const products = await Promise.race([
+      db.product.findMany({
+        orderBy: { createdAt: "desc" }
+      }),
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error("Product query timed out")), 1500)
+      )
+    ]);
+
+    return { success: true, products: products.length > 0 ? products : fallbackProducts };
   } catch (error) {
     console.error("Failed to fetch products:", error);
-    return { success: false, products: [], error: "Failed to fetch products" };
+    return { success: true, products: fallbackProducts, error: "Using fallback products" };
   }
 }
 
