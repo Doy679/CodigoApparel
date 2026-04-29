@@ -4,7 +4,6 @@ import { MessageCircle, X, Send, HelpCircle, Home, MessageSquare, Truck } from "
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAdminStore } from "@/store/useAdminStore";
-import { useSession } from "next-auth/react";
 
 interface Message {
   id: string;
@@ -70,7 +69,6 @@ const generateHumanizedReply = (input: string) => {
 };
 
 export default function ChatSupport() {
-  const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState("Message");
@@ -82,6 +80,7 @@ export default function ChatSupport() {
   const [userInfo, setUserInfo] = useState({ name: "", email: "", contact: "" });
 
   const { chats, addChatMessage } = useAdminStore();
+  const botReplyTimer = useRef<number | null>(null);
 
   const [chatId] = useState(() => {
     if (typeof window !== "undefined") {
@@ -111,8 +110,13 @@ export default function ChatSupport() {
           localStorage.removeItem("cdg-user-info");
         }
       }
-    }, 0);
-    return () => clearTimeout(timer);
+    }, 800);
+    return () => {
+      clearTimeout(timer);
+      if (botReplyTimer.current !== null) {
+        window.clearTimeout(botReplyTimer.current);
+      }
+    };
   }, []);
 
   const handleSignIn = (e: React.FormEvent) => {
@@ -146,7 +150,7 @@ export default function ChatSupport() {
   };
 
   useEffect(() => {
-    if (isOpen || messages.length > 0) {
+    if (isOpen) {
       scrollToBottom();
     }
   }, [messages, isTyping, isOpen]);
@@ -171,10 +175,14 @@ export default function ChatSupport() {
     setInputValue("");
 
     setIsTyping(true);
-    setTimeout(() => {
+    if (botReplyTimer.current !== null) {
+      window.clearTimeout(botReplyTimer.current);
+    }
+    botReplyTimer.current = window.setTimeout(() => {
       setIsTyping(false);
       const reply = generateHumanizedReply(text);
       addMessage(reply, "bot");
+      botReplyTimer.current = null;
     }, 1800);
   };
 

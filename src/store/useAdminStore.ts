@@ -89,6 +89,46 @@ interface AdminState {
   };
 }
 
+const MAX_COMMUNITY_IMAGES = 24;
+const MAX_DATA_URL_LENGTH = 700_000;
+const MAX_CHATS = 30;
+const MAX_CHAT_MESSAGES = 80;
+const MAX_NOTIFICATIONS = 50;
+const MAX_ORDERS = 75;
+
+const isPersistableImage = (src: string) =>
+  typeof src === "string" && (!src.startsWith("data:") || src.length <= MAX_DATA_URL_LENGTH);
+
+const trimConversation = (chat: Conversation): Conversation => ({
+  ...chat,
+  messages: Array.isArray(chat.messages) ? chat.messages.slice(-MAX_CHAT_MESSAGES) : []
+});
+
+const sanitizePersistedState = (state: Partial<AdminState>) => ({
+  products:
+    Array.isArray(state.products) && state.products.length > 0 ? state.products : initialProducts,
+  orders: Array.isArray(state.orders) ? state.orders.slice(0, MAX_ORDERS) : [],
+  communityImages:
+    Array.isArray(state.communityImages) && state.communityImages.length > 0
+      ? state.communityImages.filter(isPersistableImage).slice(0, MAX_COMMUNITY_IMAGES)
+      : initialCommunityImages,
+  chats: Array.isArray(state.chats) ? state.chats.slice(0, MAX_CHATS).map(trimConversation) : [],
+  notifications: Array.isArray(state.notifications)
+    ? state.notifications.slice(0, MAX_NOTIFICATIONS)
+    : []
+});
+
+if (typeof window !== "undefined") {
+  try {
+    const storedState = window.localStorage.getItem("codigo-admin-storage");
+    if (storedState && storedState.length > 4_000_000) {
+      window.localStorage.removeItem("codigo-admin-storage");
+    }
+  } catch {
+    // Ignore blocked storage access and let Zustand fall back to the initial state.
+  }
+}
+
 export const useAdminStore = create<AdminState>()(
   persist(
     (set, get) => ({
@@ -170,7 +210,10 @@ export const useAdminStore = create<AdminState>()(
 
       addCommunityImage: (image) =>
         set((state) => ({
-          communityImages: [image, ...state.communityImages]
+          communityImages: [image, ...state.communityImages.filter((src) => src !== image)].slice(
+            0,
+            MAX_COMMUNITY_IMAGES
+          )
         })),
 
       removeCommunityImage: (image) =>
@@ -398,7 +441,11 @@ export const useAdminStore = create<AdminState>()(
     }),
     {
       name: "codigo-admin-storage",
-      storage: createJSONStorage(() => localStorage)
+      version: 2,
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => sanitizePersistedState(state) as AdminState,
+      migrate: (persistedState) =>
+        sanitizePersistedState((persistedState ?? {}) as Partial<AdminState>) as AdminState
     }
   )
 );

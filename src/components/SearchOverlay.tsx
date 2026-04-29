@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Search } from "lucide-react";
 import { useProducts } from "@/hooks/useProducts";
@@ -21,19 +21,22 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
       inputRef.current?.focus();
       document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = "auto";
-      if (query !== "") {
-        setTimeout(() => setQuery(""), 0); // Clear query when closing
-      }
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = "auto";
+      document.body.style.overflow = "";
     };
-  }, [isOpen, query]);
+  }, [isOpen]);
 
-  const filteredProducts = query
-    ? products.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()))
-    : [];
+  const filteredProducts = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (!normalizedQuery) return [];
+
+    return products.filter((p) => {
+      const haystack = `${p.name} ${p.category} ${p.description}`.toLowerCase();
+      return haystack.includes(normalizedQuery);
+    });
+  }, [products, query]);
 
   return (
     <AnimatePresence>

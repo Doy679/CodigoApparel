@@ -3,6 +3,13 @@ import { auth } from "@/auth";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 import crypto from "crypto";
 
+const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Map([
+  ["image/jpeg", "jpg"],
+  ["image/png", "png"],
+  ["image/webp", "webp"]
+]);
+
 export async function POST(req: Request) {
   try {
     const session = await auth();
@@ -23,19 +30,24 @@ export async function POST(req: Request) {
       return new NextResponse("No file provided", { status: 400 });
     }
 
-    // Generate a unique filename
-    const fileExt = file.name.split(".").pop();
+    const fileExt = ALLOWED_IMAGE_TYPES.get(file.type);
+    if (!fileExt) {
+      return new NextResponse("Unsupported image type", { status: 415 });
+    }
+
+    if (file.size > MAX_UPLOAD_BYTES) {
+      return new NextResponse("Image must be smaller than 4 MB", { status: 413 });
+    }
+
     const randomString = crypto.randomBytes(16).toString("hex");
     const fileName = `${randomString}.${fileExt}`;
     const filePath = `products/${fileName}`;
 
-    // Upload to Supabase Storage
-    const { data, error } = await supabase.storage
-      .from("products") // Assumes a 'products' bucket exists
-      .upload(filePath, file, {
-        cacheControl: "3600",
-        upsert: false
-      });
+    const { error } = await supabase.storage.from("products").upload(filePath, file, {
+      cacheControl: "3600",
+      contentType: file.type,
+      upsert: false
+    });
 
     if (error) {
       console.error("Supabase Storage Error:", error);

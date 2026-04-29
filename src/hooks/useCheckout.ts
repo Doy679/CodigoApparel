@@ -72,41 +72,91 @@ export function useCheckout(cart: CartItem[], total: number, clearCart: () => vo
 
   // Load regions on mount
   useEffect(() => {
-    regions().then((res: RegionData[]) => setRegionData(res));
+    let cancelled = false;
+    regions()
+      .then((res: RegionData[]) => {
+        if (!cancelled) setRegionData(res);
+      })
+      .catch((error: unknown) => {
+        console.error("Failed to load regions:", error);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Load provinces when region changes
   useEffect(() => {
+    let cancelled = false;
+
     if (formData.regionCode) {
-      provinces(formData.regionCode).then((res: ProvinceData[]) => setProvinceData(res));
+      provinces(formData.regionCode)
+        .then((res: ProvinceData[]) => {
+          if (!cancelled) setProvinceData(res);
+        })
+        .catch((error: unknown) => {
+          console.error("Failed to load provinces:", error);
+          if (!cancelled) setProvinceData([]);
+        });
     } else {
-      if (provinceData.length > 0) {
-        setTimeout(() => setProvinceData([]), 0);
-      }
+      queueMicrotask(() => {
+        if (!cancelled) setProvinceData([]);
+      });
     }
-  }, [formData.regionCode, provinceData.length]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [formData.regionCode]);
 
   // Load cities when province changes
   useEffect(() => {
+    let cancelled = false;
+
     if (formData.provinceCode) {
-      cities(formData.provinceCode).then((res: CityData[]) => setCityData(res));
+      cities(formData.provinceCode)
+        .then((res: CityData[]) => {
+          if (!cancelled) setCityData(res);
+        })
+        .catch((error: unknown) => {
+          console.error("Failed to load cities:", error);
+          if (!cancelled) setCityData([]);
+        });
     } else {
-      if (cityData.length > 0) {
-        setTimeout(() => setCityData([]), 0);
-      }
+      queueMicrotask(() => {
+        if (!cancelled) setCityData([]);
+      });
     }
-  }, [formData.provinceCode, cityData.length]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [formData.provinceCode]);
 
   // Load barangays when city changes
   useEffect(() => {
+    let cancelled = false;
+
     if (formData.cityCode) {
-      barangays(formData.cityCode).then((res: BarangayData[]) => setBarangayData(res));
+      barangays(formData.cityCode)
+        .then((res: BarangayData[]) => {
+          if (!cancelled) setBarangayData(res);
+        })
+        .catch((error: unknown) => {
+          console.error("Failed to load barangays:", error);
+          if (!cancelled) setBarangayData([]);
+        });
     } else {
-      if (barangayData.length > 0) {
-        setTimeout(() => setBarangayData([]), 0);
-      }
+      queueMicrotask(() => {
+        if (!cancelled) setBarangayData([]);
+      });
     }
-  }, [formData.cityCode, barangayData.length]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [formData.cityCode]);
 
   const handleRegionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const region = regionData.find((r) => r.region_code === e.target.value);
@@ -160,13 +210,13 @@ export function useCheckout(cart: CartItem[], total: number, clearCart: () => vo
         }
       }
 
-      setFormData({
-        ...formData,
+      setFormData((prev) => ({
+        ...prev,
         city: city.city_name,
         cityCode: e.target.value,
         barangay: "",
         postalCode: foundCode || ""
-      });
+      }));
     }
   };
 

@@ -1,35 +1,37 @@
 "use client";
 
 import { useAdminStore } from "@/store/useAdminStore";
-import { Plus, Trash2, Camera, X } from "lucide-react";
+import { Plus, Trash2, Camera } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
+import { compressImageFile } from "@/utils/images";
 
 export default function AdminCommunity() {
-  const [mounted, setMounted] = useState(false);
   const { communityImages, addCommunityImage, removeCommunityImage } = useAdminStore();
   const [isDragging, setIsDragging] = useState(false);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
 
-  useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleImageUpload = (file: File) => {
+  const handleImageUpload = async (file: File) => {
     if (!file.type.startsWith("image/")) {
       toast.error("Please upload an image file.");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
+    setIsProcessingImage(true);
+    const toastId = toast.loading("Optimizing image...");
+
+    try {
+      const result = await compressImageFile(file);
       addCommunityImage(result);
-      toast.success("Community image added successfully.");
-    };
-    reader.readAsDataURL(file);
+      toast.success("Community image added successfully.", { id: toastId });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Image upload failed.";
+      toast.error(message, { id: toastId });
+    } finally {
+      setIsProcessingImage(false);
+    }
   };
 
   const onDrop = (e: React.DragEvent) => {
@@ -39,8 +41,6 @@ export default function AdminCommunity() {
       handleImageUpload(e.dataTransfer.files[0]);
     }
   };
-
-  if (!mounted) return null;
 
   return (
     <div className="space-y-10 py-10">
@@ -56,9 +56,10 @@ export default function AdminCommunity() {
         <div className="flex items-center gap-4">
           <button
             onClick={() => document.getElementById("community-upload")?.click()}
+            disabled={isProcessingImage}
             className="bg-black text-white px-8 py-4 text-[10px] font-black uppercase tracking-[0.3em] hover:bg-neutral-800 transition-all flex items-center gap-3 w-fit"
           >
-            <Plus size={16} /> Add Image
+            <Plus size={16} /> {isProcessingImage ? "Processing" : "Add Image"}
           </button>
           <input
             id="community-upload"
@@ -93,7 +94,7 @@ export default function AdminCommunity() {
 
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
         <AnimatePresence>
-          {communityImages.map((src, index) => (
+          {communityImages.map((src) => (
             <motion.div
               key={src}
               initial={{ opacity: 0, scale: 0.9 }}
@@ -102,7 +103,14 @@ export default function AdminCommunity() {
               layout
               className="relative aspect-[3/4] group bg-neutral-100 overflow-hidden"
             >
-              <Image src={src} alt="Community" fill className="object-cover" />
+              <Image
+                src={src}
+                alt="Community"
+                fill
+                sizes="(min-width: 1024px) 16vw, (min-width: 768px) 25vw, 50vw"
+                unoptimized={src.startsWith("data:")}
+                className="object-cover"
+              />
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
                 <button
                   onClick={() => removeCommunityImage(src)}

@@ -2,12 +2,36 @@
 
 import { useState, useRef, useEffect } from "react";
 import { ArrowRight, Volume2, VolumeX } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
+type NavigatorWithConnection = Navigator & {
+  connection?: {
+    saveData?: boolean;
+    effectiveType?: string;
+  };
+};
+
 export default function Hero() {
   const [isMuted, setIsMuted] = useState(true);
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const desktopViewport = window.matchMedia("(min-width: 768px)").matches;
+    const connection = (navigator as NavigatorWithConnection).connection;
+    const constrainedConnection =
+      connection?.saveData || ["slow-2g", "2g"].includes(connection?.effectiveType || "");
+
+    if (reducedMotion || !desktopViewport || constrainedConnection) {
+      return;
+    }
+
+    const loadTimer = window.setTimeout(() => setShouldLoadVideo(true), 1200);
+    return () => window.clearTimeout(loadTimer);
+  }, []);
 
   useEffect(() => {
     if (videoRef.current) {
@@ -20,30 +44,42 @@ export default function Hero() {
 
   return (
     <section className="relative h-[100dvh] min-h-[600px] flex items-center justify-center overflow-hidden bg-black text-white">
-      {/* Background Video */}
       <div className="absolute inset-0 z-0">
-        <video
-          ref={videoRef}
-          autoPlay
-          loop
-          muted
-          playsInline
-          poster="/landing-page-bg.jpeg"
-          className="w-full h-full object-cover opacity-60"
-        >
-          <source src="/landing-video-final.mp4" type="video/mp4" />
-        </video>
+        <Image
+          src="/landing-page-bg.jpeg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover opacity-70"
+        />
+        {shouldLoadVideo && (
+          <video
+            ref={videoRef}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="metadata"
+            poster="/landing-page-bg.jpeg"
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full object-cover opacity-60"
+          >
+            <source src="/landing-video-final.mp4" type="video/mp4" />
+          </video>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
       </div>
 
-      {/* Mute/Unmute Toggle */}
-      <button
-        onClick={() => setIsMuted(!isMuted)}
-        className="absolute bottom-10 right-8 md:right-12 z-20 p-3 bg-black/20 hover:bg-black/40 backdrop-blur-md rounded-full border border-white/10 transition-all text-white/70 hover:text-white"
-        aria-label={isMuted ? "Unmute video" : "Mute video"}
-      >
-        {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
-      </button>
+      {shouldLoadVideo && (
+        <button
+          onClick={() => setIsMuted(!isMuted)}
+          className="absolute bottom-10 right-8 md:right-12 z-20 p-3 bg-black/20 hover:bg-black/40 backdrop-blur-md rounded-full border border-white/10 transition-all text-white/70 hover:text-white"
+          aria-label={isMuted ? "Unmute video" : "Mute video"}
+        >
+          {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+        </button>
+      )}
 
       <div className="container mx-auto px-4 md:px-8 relative z-10 text-center pt-16">
         <div className="space-y-6">

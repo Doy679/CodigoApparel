@@ -13,9 +13,10 @@ import { useRouter } from "next/navigation";
 
 export default function ProductCard({ product }: { product: Product }) {
   const router = useRouter();
-  const [isHovered, setIsHovered] = useState(false);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const { addToCart, selectOnlyItem } = useCartStore();
+  const hoverImage =
+    product.hoverImage && product.hoverImage !== product.image ? product.hoverImage : null;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -63,8 +64,6 @@ export default function ProductCard({ product }: { product: Product }) {
         viewport={{ once: true }}
         transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         className="group relative flex flex-col gap-4"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
       >
         <Link
           href={`/product/${product.id}`}
@@ -72,20 +71,24 @@ export default function ProductCard({ product }: { product: Product }) {
         >
           {/* Main Image */}
           <div
-            className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${isHovered && product.hoverImage ? "opacity-0" : "opacity-100"}`}
+            className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${hoverImage ? "group-hover:opacity-0" : ""}`}
           >
-            <Image src={product.image} alt={product.name} fill className="object-cover" />
+            <Image
+              src={product.image}
+              alt={product.name}
+              fill
+              sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+              className="object-cover"
+            />
           </div>
 
-          {/* Hover Image */}
-          {product.hoverImage && (
-            <div
-              className={`absolute inset-0 transition-opacity duration-700 ease-in-out bg-neutral-300 ${isHovered ? "opacity-100" : "opacity-0"}`}
-            >
+          {hoverImage && (
+            <div className="absolute inset-0 bg-neutral-300 opacity-0 transition-opacity duration-700 ease-in-out group-hover:opacity-100">
               <Image
-                src={product.hoverImage}
+                src={hoverImage}
                 alt={`${product.name} - Hover View`}
                 fill
+                sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
                 className="object-cover"
               />
             </div>

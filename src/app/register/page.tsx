@@ -36,6 +36,7 @@ export default function RegisterPage() {
         setError(text || "Failed to register");
       }
     } catch (err) {
+      console.error("Registration request failed:", err);
       setError("An unexpected error occurred");
     } finally {
       setLoading(false);
@@ -104,7 +105,7 @@ export default function RegisterPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full bg-white border border-neutral-200 text-black px-5 py-4 text-xs font-bold focus:outline-none focus:border-black transition-colors"
               required
-              minLength={6}
+              minLength={8}
             />
           </div>
 

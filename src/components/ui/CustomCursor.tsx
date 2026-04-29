@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion, useSpring, useMotionValue, AnimatePresence } from "framer-motion";
 
 export const CustomCursor = () => {
   const [isHovering, setIsHovered] = useState(false);
   const [cursorText, setCursorText] = useState("");
   const [isVisible, setIsVisible] = useState(false);
+  const hasShownCursor = useRef(false);
 
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
@@ -16,15 +17,25 @@ export const CustomCursor = () => {
   const cursorY = useSpring(mouseY, springConfig);
 
   useEffect(() => {
+    const shouldDisableCursor =
+      window.matchMedia("(pointer: coarse)").matches ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (shouldDisableCursor) return;
+
     const handleMouseMove = (e: MouseEvent) => {
       mouseX.set(e.clientX);
       mouseY.set(e.clientY);
-      if (!isVisible) setIsVisible(true);
+      if (!hasShownCursor.current) {
+        hasShownCursor.current = true;
+        setIsVisible(true);
+      }
     };
 
     const handleMouseOver = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      const hoverText = target.getAttribute("data-cursor");
+      const cursorTarget = target.closest<HTMLElement>("[data-cursor]");
+      const hoverText = cursorTarget?.getAttribute("data-cursor");
       if (hoverText) {
         setIsHovered(true);
         setCursorText(hoverText);
@@ -34,14 +45,14 @@ export const CustomCursor = () => {
       }
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseover", handleMouseOver);
+    window.addEventListener("mousemove", handleMouseMove, { passive: true });
+    window.addEventListener("mouseover", handleMouseOver, { passive: true });
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseover", handleMouseOver);
     };
-  }, [mouseX, mouseY, isVisible]);
+  }, [mouseX, mouseY]);
 
   if (typeof window !== "undefined" && "ontouchstart" in window) return null;
 

@@ -22,6 +22,11 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
 
   if (!product) return null;
 
+  const closeModal = () => {
+    setSelectedSize(null);
+    onClose();
+  };
+
   const handleAddToCart = () => {
     if (product.sizes && product.sizes.length > 0 && !selectedSize) {
       toast.error("Please select a size");
@@ -30,7 +35,7 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
 
     addToCart(product, selectedSize || undefined);
     toast.success(`${product.name} added to cart.`);
-    onClose();
+    closeModal();
     router.push("/cart");
   };
 
@@ -42,7 +47,7 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
 
     addToCart(product, selectedSize || undefined);
     selectOnlyItem(product.id, selectedSize || undefined); // Only this item for checkout
-    onClose();
+    closeModal();
     router.push("/checkout");
   };
 
@@ -54,7 +59,7 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            onClick={closeModal}
             className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100]"
           />
           <motion.div
@@ -64,7 +69,7 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
             className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-4xl max-h-[90vh] bg-white z-[101] overflow-hidden flex flex-col md:flex-row shadow-2xl"
           >
             <button
-              onClick={onClose}
+              onClick={closeModal}
               className="absolute top-4 right-4 z-10 p-2 bg-white text-black hover:bg-neutral-100 transition-colors border border-neutral-200"
             >
               <X size={20} />
@@ -78,10 +83,17 @@ export default function QuickViewModal({ product, isOpen, onClose }: QuickViewMo
                   loop
                   muted
                   playsInline
+                  preload="metadata"
                   className="object-cover w-full h-full"
                 />
               ) : (
-                <Image src={product.image} alt={product.name} fill className="object-cover" />
+                <Image
+                  src={product.image}
+                  alt={product.name}
+                  fill
+                  sizes="(min-width: 768px) 50vw, 100vw"
+                  className="object-cover"
+                />
               )}
             </div>
 

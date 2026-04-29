@@ -2,35 +2,30 @@
 
 import { Camera, X, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAdminStore } from "@/store/useAdminStore";
 
 export default function SocialProof() {
-  const [mounted, setMounted] = useState(false);
-  const { communityImages } = useAdminStore();
+  const communityImages = useAdminStore((state) => state.communityImages);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
+  const displayImages = useMemo(() => communityImages.slice(0, 12), [communityImages]);
+  const marqueeImages = useMemo(() => [...displayImages, ...displayImages], [displayImages]);
+  const selectedImage = selectedIndex !== null ? displayImages[selectedIndex] : null;
 
   const handleNext = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    if (selectedIndex !== null) {
-      setSelectedIndex((selectedIndex + 1) % communityImages.length);
+    if (selectedIndex !== null && displayImages.length > 0) {
+      setSelectedIndex((selectedIndex + 1) % displayImages.length);
     }
   };
 
   const handlePrev = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    if (selectedIndex !== null) {
-      setSelectedIndex((selectedIndex - 1 + communityImages.length) % communityImages.length);
+    if (selectedIndex !== null && displayImages.length > 0) {
+      setSelectedIndex((selectedIndex - 1 + displayImages.length) % displayImages.length);
     }
   };
-
-  if (!mounted) return null;
 
   return (
     <section className="py-24 bg-white overflow-hidden">
@@ -49,22 +44,12 @@ export default function SocialProof() {
         </div>
       </div>
 
-      {/* Infinite Spinning Carousel - ONLY PEOPLE */}
       <div className="flex whitespace-nowrap overflow-hidden select-none border-y border-neutral-100 py-8">
-        <motion.div
-          animate={{ x: ["0%", "-50%"] }}
-          transition={{
-            ease: "linear",
-            duration: 40,
-            repeat: Infinity
-          }}
-          className="flex gap-6 pr-6 items-center"
-        >
-          {/* Double for seamless loop */}
-          {[...communityImages, ...communityImages].map((src, index) => (
+        <div className="community-strip flex gap-6 pr-6 items-center">
+          {marqueeImages.map((src, index) => (
             <div
-              key={index}
-              onClick={() => setSelectedIndex(index % communityImages.length)}
+              key={`${src}-${index}`}
+              onClick={() => setSelectedIndex(index % displayImages.length)}
               data-cursor="VIEW FIT"
               className="relative w-[180px] md:w-[240px] aspect-[3/4] bg-neutral-100 group overflow-hidden cursor-pointer flex-shrink-0"
             >
@@ -72,6 +57,8 @@ export default function SocialProof() {
                 src={src}
                 alt="Community Collective"
                 fill
+                sizes="(min-width: 768px) 240px, 180px"
+                unoptimized={src.startsWith("data:")}
                 className="object-cover transition-transform duration-700 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-2 z-10 pointer-events-none">
@@ -80,12 +67,12 @@ export default function SocialProof() {
               </div>
             </div>
           ))}
-        </motion.div>
+        </div>
       </div>
 
       {/* Lightbox / Zoom Modal */}
       <AnimatePresence>
-        {selectedIndex !== null && (
+        {selectedImage && (
           <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 md:p-12">
             <motion.div
               initial={{ opacity: 0 }}
@@ -104,7 +91,7 @@ export default function SocialProof() {
               </button>
 
               <motion.div
-                key={communityImages[selectedIndex]}
+                key={selectedImage}
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
@@ -112,9 +99,11 @@ export default function SocialProof() {
                 className="relative w-full h-[75vh] md:h-[90vh] overflow-hidden"
               >
                 <Image
-                  src={communityImages[selectedIndex]}
+                  src={selectedImage}
                   alt="Community Zoom"
                   fill
+                  sizes="100vw"
+                  unoptimized={selectedImage.startsWith("data:")}
                   className="object-contain"
                   priority
                 />

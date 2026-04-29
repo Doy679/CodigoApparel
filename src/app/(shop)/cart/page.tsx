@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useCartStore, useCartCount, useCartTotal, useSelectedCount } from "@/store/useCartStore";
+import { useCartStore, useCartTotal, useSelectedCount } from "@/store/useCartStore";
 import { ShoppingBag, ArrowLeft, Trash2, ArrowRight, Plus, Minus, Check } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";

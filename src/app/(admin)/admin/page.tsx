@@ -5,7 +5,6 @@ import {
   TrendingUp,
   ShoppingBag,
   Users,
-  ArrowUpRight,
   Clock,
   ExternalLink,
   AlertCircle,
@@ -14,25 +13,9 @@ import {
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useAdminStore } from "@/store/useAdminStore";
-import { useEffect, useState } from "react";
 
 export default function AdminDashboard() {
-  const [isClient, setIsClient] = useState(false);
   const { products, orders, getStats } = useAdminStore();
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
-
-  if (!isClient) {
-    return (
-      <div className="min-h-[50vh] flex items-center justify-center">
-        <div className="text-[10px] font-black uppercase tracking-[0.5em] animate-pulse">
-          Initializing Dashboard...
-        </div>
-      </div>
-    );
-  }
 
   const stats = getStats();
   const safeProducts = Array.isArray(products) ? products : [];
@@ -91,7 +74,7 @@ export default function AdminDashboard() {
             </div>
 
             <div className="space-y-6">
-              {safeOrders.slice(0, 3).map((order, i) => (
+              {safeOrders.slice(0, 3).map((order) => (
                 <div
                   key={order.id}
                   className="flex items-center justify-between group cursor-pointer"

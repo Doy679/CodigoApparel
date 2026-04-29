@@ -11,7 +11,12 @@ export default function CollectionShowcase() {
   const [flipIndex, setFlipIndex] = useState(0);
 
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
     const timer = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
       setFlipIndex((prev) => (prev === 0 ? 1 : 0));
     }, 4000); // Flip every 4 seconds
     return () => clearInterval(timer);
@@ -63,6 +68,7 @@ export default function CollectionShowcase() {
                       src={item.images.length > 1 ? item.images[flipIndex] : item.images[0]}
                       alt={item.title}
                       fill
+                      sizes="(min-width: 768px) 33vw, 100vw"
                       className="object-cover grayscale group-hover:grayscale-0 transition-all duration-1000"
                     />
                   </motion.div>

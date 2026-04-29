@@ -4,11 +4,8 @@ import { useAdminStore } from "@/store/useAdminStore";
 import {
   MessageSquare,
   CheckCircle2,
-  Clock,
-  User,
   Search,
   Send,
-  MoreVertical,
   Shield,
   Plus,
   Trash2,
@@ -18,12 +15,10 @@ import {
   Mail,
   Phone
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 
 export default function AdminConcerns() {
-  const [mounted, setMounted] = useState(false);
   const { chats, resolveChat, addChatMessage, updateChat, deleteChat, createChat } =
     useAdminStore();
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
@@ -35,11 +30,6 @@ export default function AdminConcerns() {
   const [newName, setNewName] = useState("");
 
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setMounted(true), 0);
-    return () => clearTimeout(timer);
-  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -92,8 +82,6 @@ export default function AdminConcerns() {
       toast.success("Customer name updated.");
     }
   };
-
-  if (!mounted) return null;
 
   return (
     <div className="h-[calc(100vh-140px)] flex flex-col py-6">

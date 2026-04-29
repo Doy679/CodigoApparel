@@ -28,37 +28,40 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   useGsapEffect(() => {
     if (product?.isPremium && imageContainerRef.current) {
       const container = imageContainerRef.current;
+      const shouldDisableTilt =
+        window.matchMedia("(pointer: coarse)").matches ||
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      if (shouldDisableTilt) return;
+
+      const rotateY = gsap.quickTo(container, "rotateY", { duration: 0.35, ease: "power2.out" });
+      const rotateX = gsap.quickTo(container, "rotateX", { duration: 0.35, ease: "power2.out" });
+      const scale = gsap.quickTo(container, "scale", { duration: 0.35, ease: "power2.out" });
+      gsap.set(container, { transformStyle: "preserve-3d", willChange: "transform" });
 
       const handleMouseMove = (e: MouseEvent) => {
         const { left, top, width, height } = container.getBoundingClientRect();
         const x = (e.clientX - left) / width - 0.5;
         const y = (e.clientY - top) / height - 0.5;
 
-        gsap.to(container, {
-          rotateY: x * 20,
-          rotateX: -y * 20,
-          scale: 1.05,
-          duration: 0.5,
-          ease: "power2.out"
-        });
+        rotateY(x * 12);
+        rotateX(-y * 12);
+        scale(1.03);
       };
 
       const handleMouseLeave = () => {
-        gsap.to(container, {
-          rotateY: 0,
-          rotateX: 0,
-          scale: 1,
-          duration: 0.8,
-          ease: "elastic.out(1, 0.5)"
-        });
+        rotateY(0);
+        rotateX(0);
+        scale(1);
       };
 
-      container.addEventListener("mousemove", handleMouseMove);
+      container.addEventListener("mousemove", handleMouseMove, { passive: true });
       container.addEventListener("mouseleave", handleMouseLeave);
 
       return () => {
         container.removeEventListener("mousemove", handleMouseMove);
         container.removeEventListener("mouseleave", handleMouseLeave);
+        gsap.set(container, { clearProps: "transformStyle,willChange,rotateX,rotateY,scale" });
       };
     }
   }, [product]);
@@ -116,6 +119,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                   loop
                   muted
                   playsInline
+                  preload="metadata"
                   className="object-cover w-full h-full"
                 />
               ) : (
@@ -123,6 +127,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                   src={currentMedia}
                   alt={product.name}
                   fill
+                  sizes="(min-width: 1024px) 50vw, 100vw"
                   className="object-cover transition-opacity duration-500"
                   priority
                 />
@@ -146,6 +151,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                         src={media}
                         muted
                         playsInline
+                        preload="metadata"
                         className="object-cover w-full h-full opacity-70"
                       />
                     ) : (
@@ -153,6 +159,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                         src={media}
                         alt={`${product.name} detail ${idx}`}
                         fill
+                        sizes="20vw"
                         className="object-cover"
                       />
                     )}
@@ -198,11 +205,20 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
                   <span className="text-[10px] font-black uppercase tracking-widest">
                     Select Size
                   </span>
-                  {showSizeError && (
-                    <span className="text-[8px] font-black uppercase text-red-500 tracking-widest animate-pulse">
-                      Please select a size
-                    </span>
-                  )}
+                  <div className="flex items-center gap-4">
+                    {showSizeError && (
+                      <span className="text-[8px] font-black uppercase text-red-500 tracking-widest animate-pulse">
+                        Please select a size
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setIsSizeGuideOpen(true)}
+                      className="text-[8px] font-black uppercase tracking-widest underline underline-offset-4 hover:text-neutral-500"
+                    >
+                      Size Guide
+                    </button>
+                  </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {(product.sizes || ["S", "M", "L", "XL", "2XL", "3XL"]).map((size) => {

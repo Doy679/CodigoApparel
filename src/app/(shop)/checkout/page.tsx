@@ -26,6 +26,9 @@ export default function CheckoutPage() {
     provinceData,
     cityData,
     barangayData,
+    handleRegionChange,
+    handleProvinceChange,
+    handleCityChange,
     handleSubmit,
     useCredits,
     setUseCredits,
@@ -138,22 +141,7 @@ export default function CheckoutPage() {
                   required
                   className="md:col-span-2 border-b border-neutral-200 py-3 text-sm focus:border-black outline-none transition-colors uppercase font-bold tracking-tight bg-white appearance-none cursor-pointer"
                   value={formData.regionCode}
-                  onChange={(e) => {
-                    const region = regionData.find((r) => r.region_code === e.target.value);
-                    if (region) {
-                      setFormData({
-                        ...formData,
-                        region: region.region_name,
-                        regionCode: e.target.value,
-                        province: "",
-                        provinceCode: "",
-                        city: "",
-                        cityCode: "",
-                        barangay: "",
-                        postalCode: ""
-                      });
-                    }
-                  }}
+                  onChange={handleRegionChange}
                 >
                   <option value="" disabled>
                     Select Region
@@ -171,20 +159,7 @@ export default function CheckoutPage() {
                   disabled={!formData.regionCode}
                   className="border-b border-neutral-200 py-3 text-sm focus:border-black outline-none transition-colors uppercase font-bold tracking-tight bg-white appearance-none cursor-pointer disabled:opacity-30"
                   value={formData.provinceCode}
-                  onChange={(e) => {
-                    const province = provinceData.find((p) => p.province_code === e.target.value);
-                    if (province) {
-                      setFormData({
-                        ...formData,
-                        province: province.province_name,
-                        provinceCode: e.target.value,
-                        city: "",
-                        cityCode: "",
-                        barangay: "",
-                        postalCode: ""
-                      });
-                    }
-                  }}
+                  onChange={handleProvinceChange}
                 >
                   <option value="" disabled>
                     Select Province
@@ -202,18 +177,7 @@ export default function CheckoutPage() {
                   disabled={!formData.provinceCode}
                   className="border-b border-neutral-200 py-3 text-sm focus:border-black outline-none transition-colors uppercase font-bold tracking-tight bg-white appearance-none cursor-pointer disabled:opacity-30"
                   value={formData.cityCode}
-                  onChange={(e) => {
-                    const city = cityData.find((c) => c.city_code === e.target.value);
-                    if (city) {
-                      setFormData({
-                        ...formData,
-                        city: city.city_name,
-                        cityCode: e.target.value,
-                        barangay: "",
-                        postalCode: ""
-                      });
-                    }
-                  }}
+                  onChange={handleCityChange}
                 >
                   <option value="" disabled>
                     Select City / Municipality

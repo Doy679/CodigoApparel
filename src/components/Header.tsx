@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Search, ShoppingBag, User, Menu, X, Moon, Sun } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useCartCount } from "@/store/useCartStore";
 import SearchOverlay from "./SearchOverlay";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,6 +13,8 @@ export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const scrollFrame = useRef<number | null>(null);
+  const scrolledRef = useRef(false);
   const cartCount = useCartCount();
 
   useEffect(() => {
@@ -24,12 +26,26 @@ export default function Header() {
         document.documentElement.classList.add("dark");
       }
     }, 0);
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0);
+    const updateScrollState = () => {
+      scrollFrame.current = null;
+      const nextIsScrolled = window.scrollY > 2;
+      if (scrolledRef.current !== nextIsScrolled) {
+        scrolledRef.current = nextIsScrolled;
+        setIsScrolled(nextIsScrolled);
+      }
     };
-    window.addEventListener("scroll", handleScroll);
+    const handleScroll = () => {
+      if (scrollFrame.current === null) {
+        scrollFrame.current = window.requestAnimationFrame(updateScrollState);
+      }
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      if (scrollFrame.current !== null) {
+        window.cancelAnimationFrame(scrollFrame.current);
+      }
       clearTimeout(timer);
     };
   }, []);
@@ -48,11 +64,15 @@ export default function Header() {
 
   // Prevent scroll when mobile menu is open
   useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
     if (isMobileMenuOpen) {
       document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = "unset";
+      document.body.style.overflow = previousOverflow || "";
     }
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
   }, [isMobileMenuOpen]);
 
   const navLinks = [
@@ -206,7 +226,9 @@ export default function Header() {
         )}
       </AnimatePresence>
 
-      <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+      {isSearchOpen && (
+        <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+      )}
     </>
   );
 }
