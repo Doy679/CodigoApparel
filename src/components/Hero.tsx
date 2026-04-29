@@ -1,21 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { ArrowRight, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
 export default function Hero() {
   const [isMuted, setIsMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.muted = isMuted;
+      if (!isMuted) {
+        videoRef.current.volume = 1.0;
+      }
+    }
+  }, [isMuted]);
 
   return (
     <section className="relative h-[100dvh] min-h-[600px] flex items-center justify-center overflow-hidden bg-black text-white">
       {/* Background Video */}
       <div className="absolute inset-0 z-0">
         <video
+          ref={videoRef}
           autoPlay
           loop
-          muted={isMuted}
+          muted
           playsInline
           poster="/landing-page-bg.jpeg"
           className="w-full h-full object-cover opacity-60"
