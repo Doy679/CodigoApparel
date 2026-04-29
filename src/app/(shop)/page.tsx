@@ -14,10 +14,8 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (!mounted) {
-      setTimeout(() => setMounted(true), 0);
-    }
-  }, [mounted]);
+    setMounted(true);
+  }, []);
 
   if (!mounted) {
     return <div className="min-h-screen bg-black" />; // Blank black screen during hydration

@@ -1,10 +1,13 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { ArrowRight, Volume2, VolumeX } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
 export default function Hero() {
+  const [isMuted, setIsMuted] = useState(true);
+
   return (
     <section className="relative h-[100dvh] min-h-[600px] flex items-center justify-center overflow-hidden bg-black text-white">
       {/* Background Video */}
@@ -12,7 +15,7 @@ export default function Hero() {
         <video
           autoPlay
           loop
-          muted
+          muted={isMuted}
           playsInline
           poster="/landing-page-bg.jpeg"
           className="w-full h-full object-cover opacity-60"
@@ -21,6 +24,15 @@ export default function Hero() {
         </video>
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
       </div>
+
+      {/* Mute/Unmute Toggle */}
+      <button
+        onClick={() => setIsMuted(!isMuted)}
+        className="absolute bottom-10 right-8 md:right-12 z-20 p-3 bg-black/20 hover:bg-black/40 backdrop-blur-md rounded-full border border-white/10 transition-all text-white/70 hover:text-white"
+        aria-label={isMuted ? "Unmute video" : "Mute video"}
+      >
+        {isMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+      </button>
 
       <div className="container mx-auto px-4 md:px-8 relative z-10 text-center pt-16">
         <div className="space-y-6">
